@@ -121,6 +121,47 @@ def main():
         print(f"\n[SUCCESS] J-Flash SPI finished OK. Log: {log_path}")
     else:
         print(f"\n[FAIL] J-Flash SPI returned {rc}. See log: {log_path}")
+        sys.exit(rc)
+
+    # -------------------------------------------------------------------------
+    # PARALLEL READCHIP + RELAYOFF FIX (THIS IS THE ONLY CHANGED PART)
+    # -------------------------------------------------------------------------
+
+    print("\n=== Running reconnect + readchip IN PARALLEL WITH relay-off ===")
+
+    # 1) Start readchip WITHOUT waiting (async)
+    p_readchip = subprocess.Popen(
+        [
+            args.jflash or "JFlashSPI_CL.exe",
+            "-openprj", args.project,
+            "-connect",
+            "-readchip"
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        shell=False
+    )
+
+    # 2) Immediately launch relayoff.py in NEW terminal
+    relay_dir = str(Path(__file__).resolve().parents[1] / "relaycontrol")
+    relay_script = str(Path(relay_dir) / "relayoff.py")
+
+    subprocess.Popen(
+        f'start cmd /k "cd /d {relay_dir} && python {relay_script}"',
+        shell=True
+    )
+
+    # 3) Stream readchip output while relay is turning off
+    while True:
+        chunk = p_readchip.stdout.readline()
+        if not chunk:
+            break
+        print(chunk.rstrip())
+
+    p_readchip.wait()
+    # -------------------------------------------------------------------------
+
     sys.exit(rc)
 
 
