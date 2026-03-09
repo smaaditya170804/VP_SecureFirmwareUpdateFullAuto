@@ -169,8 +169,8 @@ def selfprog_download(cfg: dict, update_pkg: str):
         print(f"  [ERROR] SelfProgrammer download failed with exit code {rc}.")
     return rc
 
-def selfprog_flagcheck_install(cfg: dict, wait_sec=30, retries=5, interval=2):
-    """SelfProg flag check with --install (Case A, B, C, D). Returns (rc, flag_table_output)."""
+def selfprog_flagcheck_install(cfg: dict, expected_flags: dict = None, wait_sec=30, retries=5, interval=2):
+    """SelfProg flag check with --install (Case A, B, C, D). Returns (rc, ad_path, ar_path, test_passed)."""
     script = ROOT / "selfprogrammer" / "selfproflagcheck.py"
     logs_dir = ROOT / "selfprogrammer" / "logs"
     # ensure logs directory exists and capture files created by this run
@@ -201,7 +201,33 @@ def selfprog_flagcheck_install(cfg: dict, wait_sec=30, retries=5, interval=2):
             ar_path = p
     if rc != 0:
         print(f"  [ERROR] SelfProg flag check failed with exit code {rc}.")
-    return rc, ad_path, ar_path
+    
+    # Check test pass/fail by comparing flags
+    test_passed = True
+    if expected_flags and ar_path:
+        from selfprogrammer import selfprogflagcheckparser as parser
+        ar_text = parser.load_text(ar_path)
+        ar_data = parser.parse_pairs(ar_text)
+        
+        print("\n  [DEBUG] Flag Comparison:")
+        for field_key, expected_val in expected_flags.items():
+            # Try to find the field in ar_data, handling different case variations
+            actual_val = "—"
+            for key in ar_data.keys():
+                if key.replace(" ", "").lower() == field_key.replace(" ", "").lower():
+                    actual_val = ar_data[key]
+                    break
+            
+            actual_normalized = parser.normalize_flag_value(actual_val)
+            expected_normalized = parser.normalize_flag_value(str(expected_val))
+            matches = actual_normalized == expected_normalized
+            status = "✓" if matches else "✗"
+            print(f"    {status} {field_key}: expected={expected_normalized}, actual={actual_normalized}")
+            
+            if not matches:
+                test_passed = False
+    
+    return rc, ad_path, ar_path, test_passed
 
 # -----------------------------------------------------------------------------
 # Main
@@ -262,11 +288,13 @@ def main():
         method = t.get("delivery_method", "")
         flash_srec = t.get("flash_srec")
         update_pkg = t.get("update_pkg")
+        expected_flags = t.get("expected_flags_after_reset", {})
 
         print(f"\n>>> TEST: {tid}")
 
         error_occurred = False
         flag_summary = ""
+        test_passed = False
 
         # CASE A: SREC present + JFlash delivery
         if flash_srec and method == "JFlash":
@@ -279,7 +307,7 @@ def main():
                 error_occurred = True
             elif jflash_update(cfg, update_pkg) != 0:
                 error_occurred = True
-            rc, ad, ar = selfprog_flagcheck_install(cfg)
+            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
             if rc != 0:
                 error_occurred = True
             else:
@@ -289,7 +317,7 @@ def main():
                 buf = io.StringIO()
                 if ad and ar:
                     with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar)
+                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
                     flag_summary = buf.getvalue()
 
         # CASE D: JFlash NO SREC
@@ -301,7 +329,7 @@ def main():
                 error_occurred = True
             elif jflash_update(cfg, update_pkg) != 0:
                 error_occurred = True
-            rc, ad, ar = selfprog_flagcheck_install(cfg)
+            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
             if rc != 0:
                 error_occurred = True
             else:
@@ -310,7 +338,7 @@ def main():
                 buf = io.StringIO()
                 if ad and ar:
                     with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar)
+                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
                     flag_summary = buf.getvalue()
 
         # CASE B: SelfProgrammer (NO SREC)
@@ -321,7 +349,7 @@ def main():
             else:
                 if selfprog_download(cfg, update_pkg) != 0:
                     error_occurred = True
-                rc, ad, ar = selfprog_flagcheck_install(cfg)
+                rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
                 if rc != 0:
                     error_occurred = True
                 else:
@@ -330,12 +358,12 @@ def main():
                     buf = io.StringIO()
                     if ad and ar:
                         with contextlib.redirect_stdout(buf):
-                            parser.summarize(ad, ar)
+                            parser.summarize(ad, ar, expected_flags if expected_flags else None)
                         flag_summary = buf.getvalue()
 
         # CASE C: InstallOnly (NO SREC)
         elif method == "InstallOnly":
-            rc, ad, ar = selfprog_flagcheck_install(cfg)
+            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
             if rc != 0:
                 error_occurred = True
             else:
@@ -344,7 +372,7 @@ def main():
                 buf = io.StringIO()
                 if ad and ar:
                     with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar)
+                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
                     flag_summary = buf.getvalue()
 
         else:
@@ -355,8 +383,13 @@ def main():
                 print(f"  [ERROR] Unsupported or missing delivery_method: '{method}'")
             error_occurred = True
 
+        # Print test result with pass/fail status
         if error_occurred:
             print(f">>> TEST: {tid} - COMPLETED WITH ERRORS\n")
+        else:
+            status_symbol = "✓ PASSED" if test_passed else "✗ FAILED"
+            print(f">>> TEST: {tid} - {status_symbol}\n")
+        
         # record result
         results.append({
             "id": tid,
@@ -365,7 +398,9 @@ def main():
             "flash_srec": flash_srec or "",
             "update_pkg": update_pkg or "",
             "error": error_occurred,
+            "test_passed": test_passed,
             "flag_summary": flag_summary,
+            "expected_flags": expected_flags,
         })
         if error_occurred:
             overall_error = True
@@ -399,7 +434,7 @@ def main():
             )
             
             # Main headers
-            headers = ["Test ID", "Scenario", "Delivery", "Flash SREC", "Update Package", "Error"]
+            headers = ["Test ID", "Scenario", "Delivery", "Flash SREC", "Update Package", "Error", "Status"]
             ws.append(headers)
             for cell in ws[1]:
                 cell.fill = header_fill
@@ -414,6 +449,7 @@ def main():
             ws.column_dimensions['D'].width = 35
             ws.column_dimensions['E'].width = 35
             ws.column_dimensions['F'].width = 10
+            ws.column_dimensions['G'].width = 12
             
             # Rows with main test data
             row_num = 2
@@ -424,8 +460,18 @@ def main():
                 ws[f'D{row_num}'].value = r["flash_srec"]
                 ws[f'E{row_num}'].value = r["update_pkg"]
                 ws[f'F{row_num}'].value = "Yes" if r["error"] else "No"
+                ws[f'G{row_num}'].value = "✓ PASSED" if r.get("test_passed", False) else "✗ FAILED"
                 
-                for col in ['A', 'B', 'C', 'D', 'E', 'F']:
+                # Color code the status column
+                status_cell = ws[f'G{row_num}']
+                if r.get("test_passed", False):
+                    status_cell.fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+                    status_cell.font = Font(bold=True, color="006100")
+                else:
+                    status_cell.fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+                    status_cell.font = Font(bold=True, color="9C0006")
+                
+                for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
                     cell = ws[f'{col}{row_num}']
                     cell.alignment = Alignment(horizontal="left", vertical="top", wrap_text=True)
                     cell.border = thin_border
@@ -442,7 +488,7 @@ def main():
                 test_id_cell.value = f"Test ID: {r['id']}"
                 test_id_cell.font = Font(bold=True, size=12)
                 test_id_cell.fill = PatternFill(start_color="E7E6E6", end_color="E7E6E6", fill_type="solid")
-                flag_sheet.merge_cells(f'A{flag_row}:D{flag_row}')
+                flag_sheet.merge_cells(f'A{flag_row}:E{flag_row}')
                 test_id_cell.border = thin_border
                 flag_row += 1
                 
@@ -466,12 +512,18 @@ def main():
                                 val_download = parts[1]
                                 val_reset = parts[2]
                                 
+                                # Get expected value if available
+                                expected_val = "—"
+                                if r.get("expected_flags"):
+                                    expected_val = str(r["expected_flags"].get(field_name, "—"))
+                                
                                 flag_sheet[f'A{flag_row}'].value = field_name
                                 flag_sheet[f'B{flag_row}'].value = val_download
                                 flag_sheet[f'C{flag_row}'].value = val_reset
+                                flag_sheet[f'D{flag_row}'].value = expected_val
                                 
                                 # Style the cells
-                                for col in ['A', 'B', 'C']:
+                                for col in ['A', 'B', 'C', 'D']:
                                     cell = flag_sheet[f'{col}{flag_row}']
                                     cell.border = thin_border
                                     cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
@@ -489,6 +541,7 @@ def main():
             flag_sheet.column_dimensions['A'].width = 25
             flag_sheet.column_dimensions['B'].width = 20
             flag_sheet.column_dimensions['C'].width = 20
+            flag_sheet.column_dimensions['D'].width = 20
             
             wb.save(str(reports_dir / report_name))
             print(f"[INFO] Report generated: {reports_dir / report_name}")

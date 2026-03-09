@@ -156,6 +156,8 @@ def main():
     try:
         # use the same python interpreter
         cmd = [sys.executable, str(PARSER), "--after-download", str(after_dl), "--after-reset", str(after_reset)]
+        if hasattr(args, 'expected_flags_json') and args.expected_flags_json:
+            cmd.extend(["--expected-flags", args.expected_flags_json])
         p = subprocess.run(cmd, check=False)
         sys.exit(p.returncode)
     except FileNotFoundError:

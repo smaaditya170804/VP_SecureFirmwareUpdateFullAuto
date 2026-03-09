@@ -128,15 +128,15 @@ def make_table(rows):
     return "\n".join(out)
 
 
-def summarize(ad_path: Path, ar_path: Path) -> int:
+def summarize(ad_path: Path, ar_path: Path, expected_flags: Dict = None) -> Tuple[int, bool]:
     ad_text = load_text(ad_path)
     ar_text = load_text(ar_path)
     if not ad_text:
         print(f"[ERROR] Could not read {ad_path}")
-        return 2
+        return 2, False
     if not ar_text:
         print(f"[ERROR] Could not read {ar_path}")
-        return 2
+        return 2, False
 
     ad = parse_pairs(ad_text)
     ar = parse_pairs(ar_text)
@@ -164,15 +164,104 @@ def summarize(ad_path: Path, ar_path: Path) -> int:
     print("\nNotes:")
     print(" - 'Current FW Version' is derived from FwUpdate_actbin and Version*/BuildNumber* fields.")
     print(" - Values shown exactly as reported by the device/logs.\n")
-    return 0
+    
+    # Check if test passed by comparing with expected flags
+    test_passed = True
+    if expected_flags:
+        print("\nExpected Flags After Reset Comparison\n")
+        expected_rows = []
+        for field_key, expected_val in expected_flags.items():
+            # Try to find the field in ar_data, handling different case variations
+            actual_val = "—"
+            for key in ar.keys():
+                if key.replace(" ", "").lower() == field_key.replace(" ", "").lower():
+                    actual_val = ar[key]
+                    break
+            
+            matches = normalize_flag_value(actual_val) == normalize_flag_value(str(expected_val))
+            status = "✓" if matches else "✗"
+            expected_rows.append([field_key, str(expected_val), actual_val, status])
+            if not matches:
+                test_passed = False
+        
+        print(make_expected_table(expected_rows))
+    
+    return 0, test_passed
+
+
+def normalize_flag_value(val: str) -> str:
+    """Normalize flag values for comparison (handle hex, decimals, etc)."""
+    if not val or val == "—":
+        return val
+    
+    val = val.strip()
+    
+    # Handle error codes with mnemonics (0x000000AF (FWU_SUCCESS) -> 175)
+    if "(" in val and ")" in val:
+        # Extract just the hex part before the mnemonic
+        parts = val.split("(")
+        hex_part = parts[0].strip()
+        if hex_part.upper().startswith("0X"):
+            try:
+                hex_val = int(hex_part, 16)
+                return str(hex_val)
+            except Exception:
+                pass
+        return val.upper()
+    
+    # Handle hex values (0x000000AF -> 175 in decimal for numeric comparison)
+    if val.upper().startswith("0X"):
+        try:
+            hex_val = int(val, 16)
+            return str(hex_val)
+        except Exception:
+            return val.upper()
+    
+    # For regular integer/string comparison, normalize to uppercase for consistency
+    return val.upper()
+
+
+def make_expected_table(rows):
+    """
+    Print table for expected vs actual flag comparison.
+    rows: list of [field, expected, actual, status]
+    """
+    col_w = [0, 0, 0, 0]
+    for r in rows:
+        for i, cell in enumerate(r):
+            col_w[i] = max(col_w[i], len(cell))
+
+    sep = "+-" + "-+-".join("-" * w for w in col_w) + "-+"
+    def row_fmt(vals):
+        return "| " + " | ".join(v.ljust(col_w[i]) for i, v in enumerate(vals)) + " |"
+
+    out = []
+    out.append(sep)
+    out.append(row_fmt(["Field", "Expected", "Actual", "Match"]))
+    out.append(sep)
+    for r in rows:
+        out.append(row_fmt(r))
+    out.append(sep)
+    return "\n".join(out)
 
 
 def main():
     ap = argparse.ArgumentParser(description="Parse two /readflag logs and display a summary table")
     ap.add_argument("--after-download", required=True, help="Path to 'after download' /readflag log")
     ap.add_argument("--after-reset", required=True, help="Path to 'after reset' /readflag log")
+    ap.add_argument("--expected-flags", type=str, default=None, 
+                    help="JSON string of expected flags after reset for pass/fail comparison")
     args = ap.parse_args()
-    returncode = summarize(Path(args.after_download), Path(args.after_reset))
+    
+    expected_flags = None
+    if args.expected_flags:
+        try:
+            import json
+            expected_flags = json.loads(args.expected_flags)
+        except Exception as e:
+            print(f"[WARN] Could not parse expected flags JSON: {e}")
+    
+    returncode, test_passed = summarize(Path(args.after_download), Path(args.after_reset), expected_flags)
     raise SystemExit(returncode)
 
 
