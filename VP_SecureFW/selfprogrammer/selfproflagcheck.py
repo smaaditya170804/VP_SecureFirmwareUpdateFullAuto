@@ -32,10 +32,11 @@ THIS_PY = Path(__file__).resolve()
 PARSER = THIS_PY.with_name("selfprogflagcheckparser.py")
 
 
-def run_and_capture(cmd, out_path):
+def run_and_capture(cmd, out_path, quiet=False):
     """Run a command, capture stdout/stderr to file and return (rc, text)."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    print("\n>>>", " ".join(f'"{c}"' if " " in c else c for c in cmd))
+    if not quiet:
+        print("\n>>>", " ".join(f'"{c}"' if " " in c else c for c in cmd))
     try:
         p = subprocess.Popen(
             cmd,
@@ -46,7 +47,8 @@ def run_and_capture(cmd, out_path):
         )
     except FileNotFoundError:
         msg = f"[ERROR] Not found: {cmd[0]}"
-        print(msg)
+        if not quiet:
+            print(msg)
         out_path.write_text(msg, encoding="utf-8")
         return 127, msg
 
@@ -56,7 +58,8 @@ def run_and_capture(cmd, out_path):
             line = p.stdout.readline()
             if not line:
                 break
-            print(line, end="")
+            if not quiet:
+                print(line, end="")
             f.write(line)
             lines.append(line)
         p.wait()
@@ -92,6 +95,8 @@ def main():
                     help="Retries for 2nd /readflag (default: 5)")
     ap.add_argument("--interval", type=int, default=2,
                     help="Seconds between retries (default: 2)")
+    ap.add_argument("--quiet", action="store_true",
+                    help="Suppress tool output (only show final table)")
     args = ap.parse_args()
 
     exe = str(Path(args.exe))
@@ -101,23 +106,26 @@ def main():
     after_reset = logdir / f"readflag_after_reset_{ts}.log"
     install_log = logdir / f"install_{ts}.log"
 
-    print("=== SelfProg Flag Check =======================================")
-    print(f"[INFO] EXE   : {exe}")
-    print(f"[INFO] Logs  : {logdir.resolve()}")
-    print("===============================================================\n")
+    if not args.quiet:
+        print("=== SelfProg Flag Check =======================================")
+        print(f"[INFO] EXE   : {exe}")
+        print(f"[INFO] Logs  : {logdir.resolve()}")
+        print("===============================================================\n")
 
     # 1) /readflag  --> after download
-    rc1, text1 = run_and_capture([exe, "/readflag"], after_dl)
+    rc1, text1 = run_and_capture([exe, "/readflag"], after_dl, quiet=args.quiet)
     if rc1 != 0:
-        print(f"\n[FAIL] /readflag failed (after download). See {after_dl}")
+        if not args.quiet:
+            print(f"\n[FAIL] /readflag failed (after download). See {after_dl}")
         # still attempt to parse what we have
     else:
-        print(f"\n[OK] Saved 'after download' flags to {after_dl}")
+        if not args.quiet:
+            print(f"\n[OK] Saved 'after download' flags to {after_dl}")
 
     # 2) optional /install
     if args.install:
-        rc_inst, _ = run_and_capture([exe, "/install"], install_log)
-        if rc_inst != 0:
+        rc_inst, _ = run_and_capture([exe, "/install"], install_log, quiet=args.quiet)
+        if rc_inst != 0 and not args.quiet:
             print(f"[WARN] /install returned {rc_inst}. See {install_log}")
         # brief wait, then retries for 2nd readflag
         time.sleep(max(0, args.wait))
@@ -125,22 +133,26 @@ def main():
         text2 = ""
         rc2 = 1
         for i in range(max(1, args.retries)):
-            rc2, text2 = run_and_capture([exe, "/readflag"], after_reset)
+            rc2, text2 = run_and_capture([exe, "/readflag"], after_reset, quiet=args.quiet)
             if looks_like_valid_flag_dump(text2):
                 break
-            print(f"[INFO] 2nd /readflag did not look complete, retry {i+1}/{args.retries} …")
+            if not args.quiet:
+                print(f"[INFO] 2nd /readflag did not look complete, retry {i+1}/{args.retries} …")
             time.sleep(max(1, args.interval))
     else:
         input("\n[Action] Reset/Power-cycle the device now, then press <Enter> to continue … ")
-        rc2, text2 = run_and_capture([exe, "/readflag"], after_reset)
+        rc2, text2 = run_and_capture([exe, "/readflag"], after_reset, quiet=args.quiet)
 
     if rc2 != 0:
-        print(f"\n[WARN] /readflag failed (after reset). See {after_reset}")
+        if not args.quiet:
+            print(f"\n[WARN] /readflag failed (after reset). See {after_reset}")
     else:
-        print(f"\n[OK] Saved 'after reset' flags to {after_reset}")
+        if not args.quiet:
+            print(f"\n[OK] Saved 'after reset' flags to {after_reset}")
 
     # 3) Invoke the parser immediately
-    print("\n=== Parsing and summarizing results ===\n")
+    if not args.quiet:
+        print("\n=== Parsing and summarizing results ===\n")
     try:
         # use the same python interpreter
         cmd = [sys.executable, str(PARSER), "--after-download", str(after_dl), "--after-reset", str(after_reset)]

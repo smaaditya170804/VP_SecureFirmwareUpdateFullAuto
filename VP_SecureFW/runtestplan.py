@@ -48,16 +48,22 @@ except ImportError:
 # -----------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 
-def run_cmd(cmd_list, cwd=None, stop_on_error=True, echo=True):
+def run_cmd(cmd_list, cwd=None, stop_on_error=True, echo=False, suppress_output=True):
     """Run a command (list form). Returns exit code, optionally aborts on error."""
     if echo:
         here = f"(cwd: {cwd})" if cwd else ""
         pretty = " ".join(f'"{c}"' if " " in str(c) else str(c) for c in cmd_list)
         print(f"\n>>> {pretty} {here}".strip())
-    rc = subprocess.call(cmd_list, cwd=str(cwd) if cwd else None, shell=False)
+    
+    if suppress_output:
+        rc = subprocess.call(cmd_list, cwd=str(cwd) if cwd else None, shell=False, 
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        rc = subprocess.call(cmd_list, cwd=str(cwd) if cwd else None, shell=False)
+    
     if stop_on_error and rc != 0:
-        print(f"[FAIL] Command returned {rc}. Aborting.")
-        sys.exit(rc)
+        print(f"[ERROR] Command returned {rc}.")
+        return rc
     return rc
 
 def load_yaml(yaml_path: Path):
@@ -77,11 +83,9 @@ def load_product_config(product_name: str) -> dict:
     if cfg_path.exists():
         with open(cfg_path, "r", encoding="utf-8") as f:
             cfg = json.load(f)
-            print(f"[INFO] Loaded product config: {cfg_path}")
             return cfg
 
     # Fallback defaults (from your commands)
-    print("[WARN] Product config JSON not found. Using built-in defaults.")
     return {
         "product_name": product_name,
         "id_code": "45D6136794F8BA46F7B3435164E0DA29",
@@ -113,13 +117,21 @@ def rfp_flash_srec(cfg: dict, srec_path: str):
         "--id", cfg.get("id_code", ""),
         "--run"
     ]
-    run_cmd(cmd)
+    print("  [*] Running RFP flash SREC...")
+    rc = run_cmd(cmd, stop_on_error=False)
+    if rc != 0:
+        print(f"  [ERROR] RFP flash failed with exit code {rc}.")
+    return rc
 
 def relay_on():
     """Turn ON J-Link power using your relay control (Case A: step 2)."""
     script = ROOT / "relaycontrol" / "relayon.py"
     cmd = ["python", str(script)]
-    run_cmd(cmd)
+    print("  [*] Turning relay ON...")
+    rc = run_cmd(cmd, stop_on_error=False)
+    if rc != 0:
+        print(f"  [ERROR] Relay ON failed with exit code {rc}.")
+    return rc
 
 def jflash_update(cfg: dict, update_pkg: str):
     """Run jlinkflash.py to program/verify update package (Case A: step 3, Case D step 2)."""
@@ -134,7 +146,11 @@ def jflash_update(cfg: dict, update_pkg: str):
         "--erasechip",
         "--programverify"
     ]
-    run_cmd(cmd)
+    print("  [*] Running J-Flash update...")
+    rc = run_cmd(cmd, stop_on_error=False)
+    if rc != 0:
+        print(f"  [ERROR] J-Flash update failed with exit code {rc}.")
+    return rc
 
 def selfprog_download(cfg: dict, update_pkg: str):
     """SelfProgrammer download update package (Case B)."""
@@ -148,10 +164,14 @@ def selfprog_download(cfg: dict, update_pkg: str):
         "--bin", update_pkg,
         "--backend"
     ]
-    run_cmd(cmd)
+    print("  [*] Running SelfProgrammer download...")
+    rc = run_cmd(cmd, stop_on_error=False)
+    if rc != 0:
+        print(f"  [ERROR] SelfProgrammer download failed with exit code {rc}.")
+    return rc
 
 def selfprog_flagcheck_install(cfg: dict, wait_sec=30, retries=5, interval=2):
-    """SelfProg flag check with --install (Case A, B, C, D)."""
+    """SelfProg flag check with --install (Case A, B, C, D). Returns (rc, flag_table_output)."""
     script = ROOT / "selfprogrammer" / "selfproflagcheck.py"
     logs_dir = ROOT / "selfprogrammer" / "logs"
     cmd = [
@@ -161,9 +181,14 @@ def selfprog_flagcheck_install(cfg: dict, wait_sec=30, retries=5, interval=2):
         "--install",
         "--wait", str(wait_sec),
         "--retries", str(retries),
-        "--interval", str(interval)
+        "--interval", str(interval),
+        "--quiet"
     ]
-    run_cmd(cmd)
+    print("  [*] Running SelfProg flag check with install...")
+    rc = run_cmd(cmd, stop_on_error=False, suppress_output=False)
+    if rc != 0:
+        print(f"  [ERROR] SelfProg flag check failed with exit code {rc}.")
+    return rc
 
 # -----------------------------------------------------------------------------
 # Main
@@ -182,11 +207,6 @@ def main():
     product_name = detect_product_name(tp.get("name", "SaverAdvPlus"))
     cfg = load_product_config(product_name)
 
-    print("\n============================================================")
-    print(f" RUNNING TEST PLAN : {testplan_path.name}")
-    print(f" PRODUCT          : {product_name}")
-    print("============================================================\n")
-
     tests = tp.get("tests", [])
     if not tests:
         print("[WARN] No tests found in YAML.")
@@ -199,58 +219,66 @@ def main():
         flash_srec = t.get("flash_srec")
         update_pkg = t.get("update_pkg")
 
-        print("\n------------------------------------------------------------")
-        print(f"TEST: {tid}")
-        print(f"Scenario      : {scenario}")
-        print(f"Delivery      : {method}")
-        print(f"SREC (optional): {flash_srec or '-'}")
-        print(f"Update package: {update_pkg or '-'}")
-        print("------------------------------------------------------------")
+        print(f"\n>>> TEST: {tid}")
+
+        error_occurred = False
 
         # CASE A: SREC present + JFlash delivery
         if flash_srec and method == "JFlash":
-            print("\n[CASE A] SREC present + JFlash delivery method")
-            rfp_flash_srec(cfg, flash_srec)        # Step 1
-            relay_on()                              # Step 2
+            if rfp_flash_srec(cfg, flash_srec) != 0:
+                error_occurred = True
+            if relay_on() != 0:
+                error_occurred = True
             if not update_pkg:
-                print("[ERROR] update_pkg is required for JFlash tests.")
-                sys.exit(3)
-            jflash_update(cfg, update_pkg)          # Step 3
-            selfprog_flagcheck_install(cfg)         # Step 4
+                print("  [ERROR] update_pkg is required for JFlash tests.")
+                error_occurred = True
+            elif jflash_update(cfg, update_pkg) != 0:
+                error_occurred = True
+            if selfprog_flagcheck_install(cfg) != 0:
+                error_occurred = True
 
         # CASE D: JFlash NO SREC
         elif method == "JFlash" and not flash_srec:
-            print("\n[CASE D] JFlash (no SREC)")
+            if relay_on() != 0:
+                error_occurred = True
             if not update_pkg:
-                print("[ERROR] update_pkg is required for JFlash tests.")
-                sys.exit(3)
-            relay_on()                              # Step 1
-            jflash_update(cfg, update_pkg)          # Step 2
-            selfprog_flagcheck_install(cfg)         # Step 3
+                print("  [ERROR] update_pkg is required for JFlash tests.")
+                error_occurred = True
+            elif jflash_update(cfg, update_pkg) != 0:
+                error_occurred = True
+            if selfprog_flagcheck_install(cfg) != 0:
+                error_occurred = True
 
         # CASE B: SelfProgrammer (NO SREC)
         elif method == "SelfProgrammer":
-            print("\n[CASE B] SelfProgrammer (no SREC)")
             if not update_pkg:
-                print("[ERROR] update_pkg is required for SelfProgrammer tests.")
-                sys.exit(3)
-            selfprog_download(cfg, update_pkg)
-            selfprog_flagcheck_install(cfg)
+                print("  [ERROR] update_pkg is required for SelfProgrammer tests.")
+                error_occurred = True
+            else:
+                if selfprog_download(cfg, update_pkg) != 0:
+                    error_occurred = True
+                if selfprog_flagcheck_install(cfg) != 0:
+                    error_occurred = True
 
         # CASE C: InstallOnly (NO SREC)
         elif method == "InstallOnly":
-            print("\n[CASE C] InstallOnly (no SREC)")
-            selfprog_flagcheck_install(cfg)
+            if selfprog_flagcheck_install(cfg) != 0:
+                error_occurred = True
 
         else:
             # Guard rails: if a test gives SREC but not JFlash, or unknown method
             if flash_srec and method != "JFlash":
-                print(f"[ERROR] SREC provided but delivery_method is '{method}'. Expected 'JFlash'.")
-                sys.exit(3)
-            print(f"[ERROR] Unsupported or missing delivery_method: '{method}'")
-            sys.exit(3)
+                print(f"  [ERROR] SREC provided but delivery_method is '{method}'. Expected 'JFlash'.")
+            else:
+                print(f"  [ERROR] Unsupported or missing delivery_method: '{method}'")
+            error_occurred = True
 
-    print("\n============ ALL TESTS COMPLETED SUCCESSFULLY ============\n")
+        if error_occurred:
+            print(f">>> TEST: {tid} - COMPLETED WITH ERRORS\n")
+
+    print("\n" + "="*60)
+    print("ALL TESTS COMPLETED")
+    print("="*60 + "\n")
 
 
 if __name__ == "__main__":
