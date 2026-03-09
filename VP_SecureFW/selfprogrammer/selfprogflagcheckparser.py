@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 selfprogflagcheckparser.py
 Parses two SelfProg_Tool /readflag logs and prints a compact table.
 
@@ -12,7 +12,7 @@ It extracts:
   - Current Firmware Version (computed from actbin and Version*/BuildNumber*)
 
 Usage:
-  python .\selfprogflagcheckparser.py --after-download <log1> --after-reset <log2>
+    python .\selfprogflagcheckparser.py --after-download <log1> --after-reset <log2>
 """
 
 import argparse

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 C:\VP_SecureFW\runtestplan.py
 
 Universal testplan runner implementing the exact flows demonstrated by Mithun:
@@ -27,14 +27,13 @@ Usage:
 
 Notes:
 - Looks for optional product config JSON at:
-    productconfigs/<ProductName>.json
-  If missing, uses built-in defaults based on your transcripts.
+        productconfigs/<ProductName>.json
+    If missing, uses built-in defaults based on your transcripts.
 """
-
-import sys
-import subprocess
 from pathlib import Path
 import json
+import sys
+import subprocess
 
 # --- YAML dependency (PyYAML) ------------------------------------------------
 try:
@@ -174,6 +173,9 @@ def selfprog_flagcheck_install(cfg: dict, wait_sec=30, retries=5, interval=2):
     """SelfProg flag check with --install (Case A, B, C, D). Returns (rc, flag_table_output)."""
     script = ROOT / "selfprogrammer" / "selfproflagcheck.py"
     logs_dir = ROOT / "selfprogrammer" / "logs"
+    # ensure logs directory exists and capture files created by this run
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    before = set(logs_dir.iterdir())
     cmd = [
         "python", str(script),
         "--exe", cfg.get("selfprog_exe", r"SelfProg_Tool.exe"),
@@ -186,19 +188,38 @@ def selfprog_flagcheck_install(cfg: dict, wait_sec=30, retries=5, interval=2):
     ]
     print("  [*] Running SelfProg flag check with install...")
     rc = run_cmd(cmd, stop_on_error=False, suppress_output=False)
+    # determine which log files were created
+    after = set(logs_dir.iterdir())
+    new = after - before
+    ad_path = None
+    ar_path = None
+    for p in new:
+        name = p.name.lower()
+        if "after_download" in name:
+            ad_path = p
+        elif "after_reset" in name:
+            ar_path = p
     if rc != 0:
         print(f"  [ERROR] SelfProg flag check failed with exit code {rc}.")
-    return rc
+    return rc, ad_path, ar_path
 
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python runtestplan.py <path_to_yaml_testplan>")
-        sys.exit(1)
-
-    testplan_path = Path(sys.argv[1]).resolve()
+    import argparse
+    
+    ap = argparse.ArgumentParser(
+        description="Run test plans from YAML with optional filtering",
+        usage="python runtestplan.py <path_to_yaml_testplan> [--only-test TEST_ID] [--start-from TEST_ID]"
+    )
+    ap.add_argument("testplan", help="Path to the YAML testplan file")
+    ap.add_argument("--only-test", dest="only_test", default=None, help="Run only a specific test ID")
+    ap.add_argument("--start-from", dest="start_from", default=None, help="Start from a specific test ID and run remaining tests")
+    
+    args = ap.parse_args()
+    
+    testplan_path = Path(args.testplan).resolve()
     if not testplan_path.exists():
         print(f"[ERROR] Testplan not found: {testplan_path}")
         sys.exit(2)
@@ -211,6 +232,29 @@ def main():
     if not tests:
         print("[WARN] No tests found in YAML.")
         sys.exit(0)
+    
+    # Filter tests based on options
+    if args.only_test:
+        tests = [t for t in tests if t.get("id") == args.only_test]
+        if not tests:
+            print(f"[ERROR] Test ID '{args.only_test}' not found in testplan.")
+            sys.exit(2)
+        print(f"[INFO] Running only test: {args.only_test}\n")
+    elif args.start_from:
+        start_idx = None
+        for idx, t in enumerate(tp.get("tests", [])):
+            if t.get("id") == args.start_from:
+                start_idx = idx
+                break
+        if start_idx is None:
+            print(f"[ERROR] Test ID '{args.start_from}' not found in testplan.")
+            sys.exit(2)
+        tests = tp.get("tests", [])[start_idx:]
+        print(f"[INFO] Starting from test: {args.start_from}\n")
+
+    # collect results for report
+    results = []
+    overall_error = False
 
     for t in tests:
         tid = t.get("id", "Unknown")
@@ -222,6 +266,7 @@ def main():
         print(f"\n>>> TEST: {tid}")
 
         error_occurred = False
+        flag_summary = ""
 
         # CASE A: SREC present + JFlash delivery
         if flash_srec and method == "JFlash":
@@ -234,8 +279,18 @@ def main():
                 error_occurred = True
             elif jflash_update(cfg, update_pkg) != 0:
                 error_occurred = True
-            if selfprog_flagcheck_install(cfg) != 0:
+            rc, ad, ar = selfprog_flagcheck_install(cfg)
+            if rc != 0:
                 error_occurred = True
+            else:
+                # capture flag summary text via parser
+                import io, contextlib
+                from selfprogrammer import selfprogflagcheckparser as parser
+                buf = io.StringIO()
+                if ad and ar:
+                    with contextlib.redirect_stdout(buf):
+                        parser.summarize(ad, ar)
+                    flag_summary = buf.getvalue()
 
         # CASE D: JFlash NO SREC
         elif method == "JFlash" and not flash_srec:
@@ -246,8 +301,17 @@ def main():
                 error_occurred = True
             elif jflash_update(cfg, update_pkg) != 0:
                 error_occurred = True
-            if selfprog_flagcheck_install(cfg) != 0:
+            rc, ad, ar = selfprog_flagcheck_install(cfg)
+            if rc != 0:
                 error_occurred = True
+            else:
+                import io, contextlib
+                from selfprogrammer import selfprogflagcheckparser as parser
+                buf = io.StringIO()
+                if ad and ar:
+                    with contextlib.redirect_stdout(buf):
+                        parser.summarize(ad, ar)
+                    flag_summary = buf.getvalue()
 
         # CASE B: SelfProgrammer (NO SREC)
         elif method == "SelfProgrammer":
@@ -257,13 +321,31 @@ def main():
             else:
                 if selfprog_download(cfg, update_pkg) != 0:
                     error_occurred = True
-                if selfprog_flagcheck_install(cfg) != 0:
+                rc, ad, ar = selfprog_flagcheck_install(cfg)
+                if rc != 0:
                     error_occurred = True
+                else:
+                    import io, contextlib
+                    from selfprogrammer import selfprogflagcheckparser as parser
+                    buf = io.StringIO()
+                    if ad and ar:
+                        with contextlib.redirect_stdout(buf):
+                            parser.summarize(ad, ar)
+                        flag_summary = buf.getvalue()
 
         # CASE C: InstallOnly (NO SREC)
         elif method == "InstallOnly":
-            if selfprog_flagcheck_install(cfg) != 0:
+            rc, ad, ar = selfprog_flagcheck_install(cfg)
+            if rc != 0:
                 error_occurred = True
+            else:
+                import io, contextlib
+                from selfprogrammer import selfprogflagcheckparser as parser
+                buf = io.StringIO()
+                if ad and ar:
+                    with contextlib.redirect_stdout(buf):
+                        parser.summarize(ad, ar)
+                    flag_summary = buf.getvalue()
 
         else:
             # Guard rails: if a test gives SREC but not JFlash, or unknown method
@@ -275,7 +357,150 @@ def main():
 
         if error_occurred:
             print(f">>> TEST: {tid} - COMPLETED WITH ERRORS\n")
+        # record result
+        results.append({
+            "id": tid,
+            "scenario": scenario,
+            "delivery": method,
+            "flash_srec": flash_srec or "",
+            "update_pkg": update_pkg or "",
+            "error": error_occurred,
+            "flag_summary": flag_summary,
+        })
+        if error_occurred:
+            overall_error = True
 
+    # if every test succeeded, create report and clean logs
+    if not overall_error:
+        try:
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        except ImportError:
+            print("[WARN] openpyxl not installed; skipping report generation.")
+        else:
+            reports_dir = ROOT / "reports"
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            ts = __import__("datetime").datetime.now().strftime("%Y%m%d-%H%M%S")
+            report_name = f"{testplan_path.stem}_{ts}.xlsx"
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Results"
+            
+            # Setup styles
+            header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+            header_font = Font(bold=True, color="FFFFFF")
+            flag_header_fill = PatternFill(start_color="D9E1F2", end_color="D9E1F2", fill_type="solid")
+            flag_header_font = Font(bold=True)
+            thin_border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+            
+            # Main headers
+            headers = ["Test ID", "Scenario", "Delivery", "Flash SREC", "Update Package", "Error"]
+            ws.append(headers)
+            for cell in ws[1]:
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+                cell.border = thin_border
+            
+            # Set initial column widths for main data
+            ws.column_dimensions['A'].width = 12
+            ws.column_dimensions['B'].width = 35
+            ws.column_dimensions['C'].width = 18
+            ws.column_dimensions['D'].width = 35
+            ws.column_dimensions['E'].width = 35
+            ws.column_dimensions['F'].width = 10
+            
+            # Rows with main test data
+            row_num = 2
+            for r in results:
+                ws[f'A{row_num}'].value = r["id"]
+                ws[f'B{row_num}'].value = r["scenario"]
+                ws[f'C{row_num}'].value = r["delivery"]
+                ws[f'D{row_num}'].value = r["flash_srec"]
+                ws[f'E{row_num}'].value = r["update_pkg"]
+                ws[f'F{row_num}'].value = "Yes" if r["error"] else "No"
+                
+                for col in ['A', 'B', 'C', 'D', 'E', 'F']:
+                    cell = ws[f'{col}{row_num}']
+                    cell.alignment = Alignment(horizontal="left", vertical="top", wrap_text=True)
+                    cell.border = thin_border
+                
+                row_num += 1
+            
+            # Create flag summary details sheet
+            flag_sheet = wb.create_sheet("Flag Summary")
+            flag_row = 1
+            
+            for r in results:
+                # Test ID header for this test
+                test_id_cell = flag_sheet[f'A{flag_row}']
+                test_id_cell.value = f"Test ID: {r['id']}"
+                test_id_cell.font = Font(bold=True, size=12)
+                test_id_cell.fill = PatternFill(start_color="E7E6E6", end_color="E7E6E6", fill_type="solid")
+                flag_sheet.merge_cells(f'A{flag_row}:D{flag_row}')
+                test_id_cell.border = thin_border
+                flag_row += 1
+                
+                # Parse flag summary data if available
+                if r["flag_summary"]:
+                    lines = r["flag_summary"].strip().split('\n')
+                    # Extract field-value pairs from the flag summary text
+                    in_table = False
+                    for line in lines:
+                        line_stripped = line.strip()
+                        if not line_stripped or line_stripped.startswith('+'):
+                            continue
+                        if line_stripped.startswith('|'):
+                            # Extract values from table row
+                            parts = [p.strip() for p in line_stripped.split('|')]
+                            parts = [p for p in parts if p]  # Remove empty strings
+                            
+                            if len(parts) == 3:
+                                # This is a data row: | Field | After Download | After Reset |
+                                field_name = parts[0]
+                                val_download = parts[1]
+                                val_reset = parts[2]
+                                
+                                flag_sheet[f'A{flag_row}'].value = field_name
+                                flag_sheet[f'B{flag_row}'].value = val_download
+                                flag_sheet[f'C{flag_row}'].value = val_reset
+                                
+                                # Style the cells
+                                for col in ['A', 'B', 'C']:
+                                    cell = flag_sheet[f'{col}{flag_row}']
+                                    cell.border = thin_border
+                                    cell.alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+                                
+                                flag_row += 1
+                else:
+                    flag_sheet[f'A{flag_row}'].value = "(No flag data available)"
+                    flag_sheet[f'A{flag_row}'].font = Font(italic=True, color="808080")
+                    flag_row += 1
+                
+                # Add blank row for separation
+                flag_row += 1
+            
+            # Set column widths for flag summary sheet
+            flag_sheet.column_dimensions['A'].width = 25
+            flag_sheet.column_dimensions['B'].width = 20
+            flag_sheet.column_dimensions['C'].width = 20
+            
+            wb.save(str(reports_dir / report_name))
+            print(f"[INFO] Report generated: {reports_dir / report_name}")
+            # cleanup log files now that report exists
+            for logdir in ROOT.rglob('logs'):
+                if logdir.is_dir():
+                    for f in logdir.iterdir():
+                        try:
+                            f.unlink()
+                        except Exception:
+                            pass
+            print("[INFO] Log files deleted.")
     print("\n" + "="*60)
     print("ALL TESTS COMPLETED")
     print("="*60 + "\n")

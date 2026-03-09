@@ -1,5 +1,5 @@
 name: SaverAdvPlus VP Firmware Upgrade SET 1
-date: "24/02"
+
 tests:
   - id: Test 1
     scenario: Higher Boot + Application update in VP mode

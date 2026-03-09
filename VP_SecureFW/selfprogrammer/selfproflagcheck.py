@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 selfproflagcheck.py
 Runs SelfProg_Tool.exe flag checks:
   - /readflag  --> "after download"
