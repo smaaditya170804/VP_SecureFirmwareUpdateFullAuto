@@ -1,0 +1,7 @@
+Renesas Flash Programmer CLI V1.14
+Module Version: V3.21.00.000
+Load: "C:\GBP_Testing\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\Releases\SaVerAdvPlus_SB_binaries\VP_SET_1\R_11122244V01.01.00.00001_INT_Image_R.srec" (Size=5079130, CRC=D366EB05)
+
+Connecting the tool (E2 emulator Lite)
+
+[Error] E3000201: Cannot find the specified tool.

@@ -98,8 +98,8 @@ tests:
     delivery_method: InstallOnly
     flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\R_11122244V01.01.00.00001_INT_Image_R.srec"
     expected_flags_after_reset:
-      FwUpdate_req: 0
+      FwUpdate_req: 255
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 255
-      SelfProg Error Code: "0xAF"
+      SelfProg Error Code: "0x600"

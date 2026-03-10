@@ -36,6 +36,7 @@ Notes:
 """
 from pathlib import Path
 import json
+from typing import Tuple
 import sys
 import subprocess
 
@@ -233,6 +234,126 @@ def selfprog_flagcheck_install(cfg: dict, expected_flags: dict = None, wait_sec=
     
     return rc, ad_path, ar_path, test_passed
 
+def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, str]:
+    """
+    Execute a single test and return (error_occurred, test_passed, flag_summary).
+    """
+    tid = t.get("id", "Unknown")
+    scenario = t.get("scenario", "")
+    method = t.get("delivery_method", "")
+    flash_srec = t.get("flash_srec")
+    update_pkg = t.get("update_pkg")
+    expected_flags = t.get("expected_flags_after_reset", {})
+
+    error_occurred = False
+    flag_summary = ""
+    test_passed = False
+
+    # CASE A: SREC present + JFlash delivery
+    if flash_srec and method == "JFlash":
+        if rfp_flash_srec(cfg, flash_srec) != 0:
+            error_occurred = True
+        if relay_on() != 0:
+            error_occurred = True
+        if not update_pkg:
+            print("  [ERROR] update_pkg is required for JFlash tests.")
+            error_occurred = True
+        elif jflash_update(cfg, update_pkg) != 0:
+            error_occurred = True
+        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
+        if rc != 0:
+            error_occurred = True
+        else:
+            # capture flag summary text via parser
+            import io, contextlib
+            from selfprogrammer import selfprogflagcheckparser as parser
+            buf = io.StringIO()
+            if ad and ar:
+                with contextlib.redirect_stdout(buf):
+                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
+                flag_summary = buf.getvalue()
+
+    # CASE D: JFlash NO SREC
+    elif method == "JFlash" and not flash_srec:
+        if relay_on() != 0:
+            error_occurred = True
+        if not update_pkg:
+            print("  [ERROR] update_pkg is required for JFlash tests.")
+            error_occurred = True
+        elif jflash_update(cfg, update_pkg) != 0:
+            error_occurred = True
+        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
+        if rc != 0:
+            error_occurred = True
+        else:
+            import io, contextlib
+            from selfprogrammer import selfprogflagcheckparser as parser
+            buf = io.StringIO()
+            if ad and ar:
+                with contextlib.redirect_stdout(buf):
+                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
+                flag_summary = buf.getvalue()
+
+    # CASE B: SelfProgrammer (NO SREC)
+    elif method == "SelfProgrammer":
+        if not update_pkg:
+            print("  [ERROR] update_pkg is required for SelfProgrammer tests.")
+            error_occurred = True
+        else:
+            if selfprog_download(cfg, update_pkg) != 0:
+                error_occurred = True
+            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
+            if rc != 0:
+                error_occurred = True
+            else:
+                import io, contextlib
+                from selfprogrammer import selfprogflagcheckparser as parser
+                buf = io.StringIO()
+                if ad and ar:
+                    with contextlib.redirect_stdout(buf):
+                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
+                    flag_summary = buf.getvalue()
+
+    # CASE E: SREC present + InstallOnly
+    elif flash_srec and method == "InstallOnly":
+        if rfp_flash_srec(cfg, flash_srec) != 0:
+            error_occurred = True
+        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
+        if rc != 0:
+            error_occurred = True
+        else:
+            import io, contextlib
+            from selfprogrammer import selfprogflagcheckparser as parser
+            buf = io.StringIO()
+            if ad and ar:
+                with contextlib.redirect_stdout(buf):
+                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
+                flag_summary = buf.getvalue()
+
+    # CASE C: InstallOnly (NO SREC)
+    elif method == "InstallOnly":
+        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
+        if rc != 0:
+            error_occurred = True
+        else:
+            import io, contextlib
+            from selfprogrammer import selfprogflagcheckparser as parser
+            buf = io.StringIO()
+            if ad and ar:
+                with contextlib.redirect_stdout(buf):
+                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
+                flag_summary = buf.getvalue()
+
+    else:
+        # Guard rails: if a test gives SREC but not JFlash or InstallOnly, or unknown method
+        if flash_srec and method not in ["JFlash", "InstallOnly"]:
+            print(f"  [ERROR] SREC provided but delivery_method is '{method}'. Expected 'JFlash' or 'InstallOnly'.")
+        else:
+            print(f"  [ERROR] Unsupported or missing delivery_method: '{method}'")
+        error_occurred = True
+
+    return error_occurred, test_passed, flag_summary
+
 # -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
@@ -285,8 +406,13 @@ def main():
     # collect results for report
     results = []
     overall_error = False
+    last_srec_test_idx = None
+    test_idx = 0
+    last_failed_no_srec_idx = None
+    last_failed_no_srec_retry_count = 0
 
-    for t in tests:
+    while test_idx < len(tests):
+        t = tests[test_idx]
         tid = t.get("id", "Unknown")
         scenario = t.get("scenario", "")
         method = t.get("delivery_method", "")
@@ -294,122 +420,62 @@ def main():
         update_pkg = t.get("update_pkg")
         expected_flags = t.get("expected_flags_after_reset", {})
 
+        # Track the last test that had flash_srec
+        if flash_srec:
+            last_srec_test_idx = test_idx
+
         print(f"\n>>> TEST: {tid}")
 
+        # Execute test with retry logic
+        retry_count = 0
         error_occurred = False
-        flag_summary = ""
         test_passed = False
+        flag_summary = ""
 
-        # CASE A: SREC present + JFlash delivery
-        if flash_srec and method == "JFlash":
-            if rfp_flash_srec(cfg, flash_srec) != 0:
-                error_occurred = True
-            if relay_on() != 0:
-                error_occurred = True
-            if not update_pkg:
-                print("  [ERROR] update_pkg is required for JFlash tests.")
-                error_occurred = True
-            elif jflash_update(cfg, update_pkg) != 0:
-                error_occurred = True
-            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-            if rc != 0:
-                error_occurred = True
-            else:
-                # capture flag summary text via parser
-                import io, contextlib
-                from selfprogrammer import selfprogflagcheckparser as parser
-                buf = io.StringIO()
-                if ad and ar:
-                    with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                    flag_summary = buf.getvalue()
-
-        # CASE D: JFlash NO SREC
-        elif method == "JFlash" and not flash_srec:
-            if relay_on() != 0:
-                error_occurred = True
-            if not update_pkg:
-                print("  [ERROR] update_pkg is required for JFlash tests.")
-                error_occurred = True
-            elif jflash_update(cfg, update_pkg) != 0:
-                error_occurred = True
-            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-            if rc != 0:
-                error_occurred = True
-            else:
-                import io, contextlib
-                from selfprogrammer import selfprogflagcheckparser as parser
-                buf = io.StringIO()
-                if ad and ar:
-                    with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                    flag_summary = buf.getvalue()
-
-        # CASE B: SelfProgrammer (NO SREC)
-        elif method == "SelfProgrammer":
-            if not update_pkg:
-                print("  [ERROR] update_pkg is required for SelfProgrammer tests.")
-                error_occurred = True
-            else:
-                if selfprog_download(cfg, update_pkg) != 0:
-                    error_occurred = True
-                rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-                if rc != 0:
-                    error_occurred = True
-                else:
-                    import io, contextlib
-                    from selfprogrammer import selfprogflagcheckparser as parser
-                    buf = io.StringIO()
-                    if ad and ar:
-                        with contextlib.redirect_stdout(buf):
-                            parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                        flag_summary = buf.getvalue()
-
-        # CASE E: SREC present + InstallOnly
-        elif flash_srec and method == "InstallOnly":
-            if rfp_flash_srec(cfg, flash_srec) != 0:
-                error_occurred = True
-            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-            if rc != 0:
-                error_occurred = True
-            else:
-                import io, contextlib
-                from selfprogrammer import selfprogflagcheckparser as parser
-                buf = io.StringIO()
-                if ad and ar:
-                    with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                    flag_summary = buf.getvalue()
-
-        # CASE C: InstallOnly (NO SREC)
-        elif method == "InstallOnly":
-            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-            if rc != 0:
-                error_occurred = True
-            else:
-                import io, contextlib
-                from selfprogrammer import selfprogflagcheckparser as parser
-                buf = io.StringIO()
-                if ad and ar:
-                    with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                    flag_summary = buf.getvalue()
-
-        else:
-            # Guard rails: if a test gives SREC but not JFlash or InstallOnly, or unknown method
-            if flash_srec and method not in ["JFlash", "InstallOnly"]:
-                print(f"  [ERROR] SREC provided but delivery_method is '{method}'. Expected 'JFlash' or 'InstallOnly'.")
-            else:
-                print(f"  [ERROR] Unsupported or missing delivery_method: '{method}'")
-            error_occurred = True
+        while retry_count < 3:
+            error_occurred, test_passed, flag_summary = execute_test(t, cfg)
+            
+            if not error_occurred:
+                break
+            
+            retry_count += 1
+            if retry_count < 3:
+                print(f"  [RETRY] Test failed, retrying ({retry_count}/3)...")
 
         # Print test result with pass/fail status
         if error_occurred:
             print(f">>> TEST: {tid} - COMPLETED WITH ERRORS\n")
+            
+            # If this test has no flash_srec and it errored, restart from last srec test with 3 cycle retries
+            if not flash_srec and last_srec_test_idx is not None:
+                # Check if this is the same failed test as before
+                if last_failed_no_srec_idx == test_idx:
+                    last_failed_no_srec_retry_count += 1
+                    if last_failed_no_srec_retry_count < 3:
+                        print(f"  [INFO] Test {tid} failed again. Restarting from last SREC test (cycle {last_failed_no_srec_retry_count + 1}/3)...")
+                        test_idx = last_srec_test_idx
+                        overall_error = True
+                        continue
+                    else:
+                        print(f"  [INFO] Test {tid} failed 3 times. Moving to next test.")
+                        last_failed_no_srec_idx = None
+                        last_failed_no_srec_retry_count = 0
+                else:
+                    # First failure for this test without srec
+                    last_failed_no_srec_idx = test_idx
+                    last_failed_no_srec_retry_count = 1
+                    print(f"  [INFO] No SREC in this test. Restarting from last SREC test (cycle 1/3)...")
+                    test_idx = last_srec_test_idx
+                    overall_error = True
+                    continue
         else:
             status_symbol = "✓ PASSED" if test_passed else "✗ FAILED"
             print(f">>> TEST: {tid} - {status_symbol}\n")
-        
+            # Reset failed no-srec tracking when a test passes
+            if not flash_srec:
+                last_failed_no_srec_idx = None
+                last_failed_no_srec_retry_count = 0
+
         # record result
         results.append({
             "id": tid,
@@ -424,6 +490,8 @@ def main():
         })
         if error_occurred:
             overall_error = True
+
+        test_idx += 1
 
     # if every test succeeded, create report and clean logs
     if not overall_error:
