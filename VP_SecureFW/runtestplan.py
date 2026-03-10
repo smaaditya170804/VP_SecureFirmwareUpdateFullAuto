@@ -22,6 +22,10 @@ CASE D: delivery_method: JFlash (NO SREC)
     2) J-Flash update package
     3) SelfProg flag check with --install
 
+CASE E: SREC present + delivery_method: InstallOnly
+    1) RFP flash SREC
+    2) SelfProg flag check with --install
+
 Usage:
     python runtestplan.py <path_to_yaml_testplan>
 
@@ -361,6 +365,22 @@ def main():
                             parser.summarize(ad, ar, expected_flags if expected_flags else None)
                         flag_summary = buf.getvalue()
 
+        # CASE E: SREC present + InstallOnly
+        elif flash_srec and method == "InstallOnly":
+            if rfp_flash_srec(cfg, flash_srec) != 0:
+                error_occurred = True
+            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
+            if rc != 0:
+                error_occurred = True
+            else:
+                import io, contextlib
+                from selfprogrammer import selfprogflagcheckparser as parser
+                buf = io.StringIO()
+                if ad and ar:
+                    with contextlib.redirect_stdout(buf):
+                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
+                    flag_summary = buf.getvalue()
+
         # CASE C: InstallOnly (NO SREC)
         elif method == "InstallOnly":
             rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
@@ -376,9 +396,9 @@ def main():
                     flag_summary = buf.getvalue()
 
         else:
-            # Guard rails: if a test gives SREC but not JFlash, or unknown method
-            if flash_srec and method != "JFlash":
-                print(f"  [ERROR] SREC provided but delivery_method is '{method}'. Expected 'JFlash'.")
+            # Guard rails: if a test gives SREC but not JFlash or InstallOnly, or unknown method
+            if flash_srec and method not in ["JFlash", "InstallOnly"]:
+                print(f"  [ERROR] SREC provided but delivery_method is '{method}'. Expected 'JFlash' or 'InstallOnly'.")
             else:
                 print(f"  [ERROR] Unsupported or missing delivery_method: '{method}'")
             error_occurred = True
