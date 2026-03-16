@@ -1,0 +1,74 @@
+name: LY Two Stage Secure Firmware Upgrade SET 1
+
+tests:
+  - id: Test 1
+    scenario: Application Update
+    delivery_method: SelfProgrammer
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\R_58112233V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\58112233V02.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.sxcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+    
+  - id: Test 2
+    scenario: Boot + Application update w/ version change
+    delivery_method: SelfProgrammer
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\R_58112233V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\58112233V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.sxcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+  
+  - id: Test 2.1
+    scenario: Boot + Application update w/ build number change
+    delivery_method: SelfProgrammer
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\58112233V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.sxcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+
+  - id: Test 2.2
+    scenario: Same Boot + Same Application version w/ app encrypted image corrupted
+    delivery_method: SelfProgrammer
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\58112233V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x601"    
+
+  - id: Test 3
+    scenario: Higher Boot + Higher/Same Application update w/ Boot encrypted image corrupted
+    delivery_method: SelfProgrammer
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\58112233V02.01.00.00002_R_K_TSIP_BL_03_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x601" 
+
+  - id: Test 4
+    scenario: Same Boot + higer Application version w/ App encrypted image corrupted
+    delivery_method: SelfProgrammer
+    flash_srec: 
+    update_pkg: "C:\GBP_Testing\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\SET_1\\58112233V04.01.01.00001_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x601"         

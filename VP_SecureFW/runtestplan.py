@@ -376,7 +376,19 @@ def main():
         sys.exit(2)
 
     tp = load_yaml(testplan_path)
-    product_name = detect_product_name(tp.get("name", "SaverAdvPlus"))
+    # Allow overriding the product name in the YAML (preferred)
+    product_name = tp.get("product_name") or tp.get("product")
+
+    # If not explicitly set, try inferring from the testplan filename (e.g. LY_VP_SET1.yaml)
+    if not product_name:
+        candidate = testplan_path.stem.split("_")[0]
+        cfg_path = ROOT / "productconfigs" / f"{candidate}.json"
+        if cfg_path.exists():
+            product_name = candidate
+
+    # Fallback to the embedded name field in the YAML
+    if not product_name:
+        product_name = detect_product_name(tp.get("name", "SaverAdvPlus"))
     cfg = load_product_config(product_name)
 
     tests = tp.get("tests", [])

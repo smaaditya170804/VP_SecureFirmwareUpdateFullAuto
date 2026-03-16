@@ -1,0 +1,105 @@
+name: SaverAdvPlus VP Firmware Upgrade SET 1
+
+tests:
+  - id: Test 1
+    scenario: Higher Boot + Application update in VP mode
+    delivery_method: JFlash
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\R_58112233V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+    
+  - id: Test 1.1
+    scenario: Boot + Application Update
+    delivery_method: SelfProgrammer
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+
+  - id: Test 2
+    scenario: Same Boot + Same Application Version
+    delivery_method: JFlash
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\R_58112233V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 255
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x600"
+
+  - id: Test 2.1
+    scenario: Boot + Application Update
+    delivery_method: SelfProgrammer
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+
+  - id: Test 3
+    scenario: Both lower version of boot + app [FW Downgrade Test]
+    delivery_method: JFlash
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\R_58112233V02.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 255
+      FwUpdate_frez: 255
+      FwUpdate_actbin: 255
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x601"
+
+  - id: Test 3.1
+    scenario: Boot + Application update
+    delivery_method: JFlash
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+
+  - id: Test 4
+    scenario: Both lower version of boot + app [SAP Number Different]
+    delivery_method: JFlash
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\R_58010101V02.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+
+  - id: Test 4.1
+    scenario: Boot + Application update
+    delivery_method: SelfProgrammer
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\58112233V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+
+  - id: Test 5
+    scenario: Give install command without update package
+    delivery_method: InstallOnly
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00048\\Releases\\GBP_LY_FME_SB\\VP_SET_1\\R_58112233V01.01.00.00001_INT_Image_R.srec"
+    expected_flags_after_reset:
+      FwUpdate_req: 255
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x600"

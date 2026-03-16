@@ -1,0 +1,21 @@
+{
+  "product_name": "LY",
+  "id_code": "4516947326C18FFE67018AAD70945DB3",
+
+  "rfp_exe": "C:\\Program Files (x86)\\Renesas Electronics\\Programming Tools\\Renesas Flash Programmer V3.21\\rfp-cli.exe",
+  "rfp_device": "RX66x",
+  "rfp_tool": "e2l",
+  "rfp_interface": "fine",
+
+  "jflash_exe": "C:\\Program Files\\SEGGER\\JLink\\JFlashSPI_CL.exe",
+  "jflash_project": "C:\\Software\\J-Flash SPI_Projects\\V9.12\\jlinkflash.jflash",
+
+  "selfprog_exe": "C:\\GBP_Testing\\Release_Test\\Release_Test\\SelfProg_Tool.exe",
+
+  "relay_on_script": "relaycontrol/relayon.py",
+  "relay_off_script": "relaycontrol/relayoff.py",
+
+  "serial_port": 8,
+  "serial_baud": 38400,
+  "board_number": 58
+}
