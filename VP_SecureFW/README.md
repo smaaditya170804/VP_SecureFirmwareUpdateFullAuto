@@ -203,11 +203,18 @@ The framework supports 5 different test scenarios:
 
 #### CASE E: SREC + InstallOnly
 1. Flash SREC using RFP
-2. Check self-programmer flags
+2. Turn relay ON (power on device)
+3. J-Flash erasechip, then readchip + relayoff (no update package required)
+4. Check self-programmer flags
 
-## Retry Logic
+## Unified Test Flow & Retry Logic
 
-The framework implements sophisticated retry mechanisms:
+The framework uses a unified, flexible test execution logic:
+
+- **If an SREC is provided, it is always flashed first.**
+- **Delivery method** (JFlash, SelfProgrammer, InstallOnly) is then executed as specified.
+- **Flag check is always performed last for every test.**
+- **Any combination is supported:** SREC only, delivery method only, both, or neither (flag check only).
 
 ### SREC Tests (with `flash_srec`)
 - **Individual Retries**: Failed tests retry up to 3 times at the same position
@@ -231,9 +238,11 @@ Test 2 (no SREC) → FAIL → Give up after 3 cycles → Move to Test 3
 
 ## Output & Reporting
 
+
 ### Console Output
 
 - Real-time test progress with status indicators
+- Only high-level test step messages are shown (tool command output is suppressed for clarity)
 - Detailed retry information
 - Flag comparison results
 - Error messages and diagnostics
@@ -276,6 +285,11 @@ The framework validates device state by comparing actual flag values against exp
 2. **Device Connection Failed**: Check hardware connections and power
 3. **Flag Mismatches**: Review expected values in test plan YAML
 4. **Serial Communication**: Verify port/baud settings
+
+
+### Prompt Automation
+
+- The framework automatically responds to interactive prompts (e.g., "Do you want to program the same version again? Press y to continue...") for seamless unattended execution.
 
 ### Debug Mode
 
