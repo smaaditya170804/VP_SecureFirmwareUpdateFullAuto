@@ -17,6 +17,12 @@ CASE B: delivery_method: SelfProgrammer (NO SREC)
 CASE C: delivery_method: InstallOnly (NO SREC)
     1) SelfProg flag check with --install
 
+CASE E: SREC present + delivery_method: InstallOnly
+    1) RFP flash SREC
+    2) Relay ON
+    3) J-Flash erasechip + readchip + relayoff
+    4) SelfProg flag check with --install
+
 CASE D: delivery_method: JFlash (NO SREC)
     1) Relay ON
     2) J-Flash update package
@@ -156,8 +162,39 @@ def jflash_update(cfg: dict, update_pkg: str):
         print(f"  [ERROR] J-Flash update failed with exit code {rc}.")
     return rc
 
+def jflash_erase_and_reconnect(cfg: dict):
+    """Run J-Flash erasechip + readchip + relayoff for InstallOnly with SREC."""
+    exe = cfg.get("jflash_exe", r"JFlashSPI_CL.exe")
+    project = cfg.get("jflash_project", r"jlinkflash.jflash")
+    
+    print("  [*] Running J-Flash erasechip...")
+    cmd_erase = [exe, "-openprj", project, "-connect", "-erasechip"]
+    rc = run_cmd(cmd_erase, stop_on_error=False)
+    if rc != 0:
+        print(f"  [ERROR] J-Flash erasechip failed with exit code {rc}.")
+        return rc
+    
+    print("  [*] Running readchip + relayoff...")
+    p_readchip = subprocess.Popen(
+        [exe, "-openprj", project, "-connect", "-readchip"],
+        stdout=subprocess.DEVNULL,  # Suppress output
+        stderr=subprocess.STDOUT,
+        text=True,
+        shell=False
+    )
+    
+    relay_dir = ROOT / "relaycontrol"
+    relay_script = relay_dir / "relayoff.py"
+    subprocess.Popen(
+        f'start cmd /c "cd /d {relay_dir} && python {relay_script}"',
+        shell=True
+    )
+    
+    p_readchip.wait()
+    return p_readchip.returncode
+
 def selfprog_download(cfg: dict, update_pkg: str):
-    """SelfProgrammer download update package (Case B)."""
+    """SelfProgrammer download update package."""
     script = ROOT / "selfprogrammer" / "selfprogrammerdownload.py"
     cmd = [
         "python", str(script),
@@ -169,9 +206,18 @@ def selfprog_download(cfg: dict, update_pkg: str):
         "--backend"
     ]
     print("  [*] Running SelfProgrammer download...")
-    rc = run_cmd(cmd, stop_on_error=False)
+    # Use subprocess.Popen to provide 'y' input for same version prompt
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=str(ROOT))
+    stdout, _ = proc.communicate(input=b'y\n')
+    rc = proc.returncode
     if rc != 0:
         print(f"  [ERROR] SelfProgrammer download failed with exit code {rc}.")
+        # Print output for debugging
+        try:
+            output = stdout.decode("utf-8", errors="replace")
+            print(output)
+        except Exception:
+            pass
     return rc
 
 def selfprog_flagcheck_install(cfg: dict, expected_flags: dict = None, wait_sec=30, retries=5, interval=2):
@@ -249,10 +295,13 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, str]:
     flag_summary = ""
     test_passed = False
 
-    # CASE A: SREC present + JFlash delivery
-    if flash_srec and method == "JFlash":
+    # Step 1: If SREC is provided, flash it first
+    if flash_srec:
         if rfp_flash_srec(cfg, flash_srec) != 0:
             error_occurred = True
+
+    # Step 2: Handle delivery method
+    if method == "JFlash":
         if relay_on() != 0:
             error_occurred = True
         if not update_pkg:
@@ -260,97 +309,35 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, str]:
             error_occurred = True
         elif jflash_update(cfg, update_pkg) != 0:
             error_occurred = True
-        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-        if rc != 0:
-            error_occurred = True
-        else:
-            # capture flag summary text via parser
-            import io, contextlib
-            from selfprogrammer import selfprogflagcheckparser as parser
-            buf = io.StringIO()
-            if ad and ar:
-                with contextlib.redirect_stdout(buf):
-                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                flag_summary = buf.getvalue()
-
-    # CASE D: JFlash NO SREC
-    elif method == "JFlash" and not flash_srec:
-        if relay_on() != 0:
-            error_occurred = True
-        if not update_pkg:
-            print("  [ERROR] update_pkg is required for JFlash tests.")
-            error_occurred = True
-        elif jflash_update(cfg, update_pkg) != 0:
-            error_occurred = True
-        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-        if rc != 0:
-            error_occurred = True
-        else:
-            import io, contextlib
-            from selfprogrammer import selfprogflagcheckparser as parser
-            buf = io.StringIO()
-            if ad and ar:
-                with contextlib.redirect_stdout(buf):
-                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                flag_summary = buf.getvalue()
-
-    # CASE B: SelfProgrammer (NO SREC)
     elif method == "SelfProgrammer":
         if not update_pkg:
             print("  [ERROR] update_pkg is required for SelfProgrammer tests.")
             error_occurred = True
-        else:
-            if selfprog_download(cfg, update_pkg) != 0:
-                error_occurred = True
-            rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-            if rc != 0:
-                error_occurred = True
-            else:
-                import io, contextlib
-                from selfprogrammer import selfprogflagcheckparser as parser
-                buf = io.StringIO()
-                if ad and ar:
-                    with contextlib.redirect_stdout(buf):
-                        parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                    flag_summary = buf.getvalue()
-
-    # CASE E: SREC present + InstallOnly
-    elif flash_srec and method == "InstallOnly":
-        if rfp_flash_srec(cfg, flash_srec) != 0:
+        elif selfprog_download(cfg, update_pkg) != 0:
             error_occurred = True
-        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-        if rc != 0:
-            error_occurred = True
-        else:
-            import io, contextlib
-            from selfprogrammer import selfprogflagcheckparser as parser
-            buf = io.StringIO()
-            if ad and ar:
-                with contextlib.redirect_stdout(buf):
-                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                flag_summary = buf.getvalue()
-
-    # CASE C: InstallOnly (NO SREC)
     elif method == "InstallOnly":
-        rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
-        if rc != 0:
+        if relay_on() != 0:
             error_occurred = True
-        else:
-            import io, contextlib
-            from selfprogrammer import selfprogflagcheckparser as parser
-            buf = io.StringIO()
-            if ad and ar:
-                with contextlib.redirect_stdout(buf):
-                    parser.summarize(ad, ar, expected_flags if expected_flags else None)
-                flag_summary = buf.getvalue()
-
-    else:
-        # Guard rails: if a test gives SREC but not JFlash or InstallOnly, or unknown method
-        if flash_srec and method not in ["JFlash", "InstallOnly"]:
-            print(f"  [ERROR] SREC provided but delivery_method is '{method}'. Expected 'JFlash' or 'InstallOnly'.")
-        else:
-            print(f"  [ERROR] Unsupported or missing delivery_method: '{method}'")
+        if jflash_erase_and_reconnect(cfg) != 0:
+            error_occurred = True
+    elif method:
+        print(f"  [ERROR] Unknown delivery_method: '{method}'")
         error_occurred = True
+    # If no method, just proceed (allows tests with only SREC)
+
+    # Step 3: Always perform flag check at the end
+    rc, ad, ar, test_passed = selfprog_flagcheck_install(cfg, expected_flags)
+    if rc != 0:
+        error_occurred = True
+    else:
+        # Capture flag summary text via parser
+        import io, contextlib
+        from selfprogrammer import selfprogflagcheckparser as parser
+        buf = io.StringIO()
+        if ad and ar:
+            with contextlib.redirect_stdout(buf):
+                parser.summarize(ad, ar, expected_flags if expected_flags else None)
+            flag_summary = buf.getvalue()
 
     return error_occurred, test_passed, flag_summary
 
