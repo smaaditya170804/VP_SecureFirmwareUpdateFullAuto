@@ -1,0 +1,144 @@
+name: CIM550Main Firmware Update Test Plan
+product_name: CIM550
+tests:
+  - id: Test 1
+    scenario: Flash latest version X3 srec and downgrade to X2_FF version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00010\\Releases\\CIM550\\GBP_CIM550_R_Merged.srec"
+    update_pkg: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00001\\Releases\\CIM550\\GBP_CIM550_R_Merged_FF_V43.37.00.00001.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104"
+    
+  - id: Test 2
+    scenario: Downgrade to X1_FF version from X2_FF version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.37.00\\bbgerabasic_platform_binaries-prerelease-V43.36.00.00001\\Releases\\CIM550\\GBP_CIM550_R_Merged_FF_V43.36.00.00001.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104"
+  
+  - id: Test 3
+    scenario: Upgrade to X2_FF version from X1_FF version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00001\\Releases\\CIM550\\GBP_CIM550_R_Merged_FF_V43.37.00.00001.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104"
+
+  - id: Test 4
+    scenario: Upgrade to X3_FF version from X2_FF version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00010\\Releases\\CIM550\\GBP_CIM550_R_Merged_FF_V43.37.00.00010.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104"    
+
+  - id: Test 5
+    scenario: Update to X1_FF version from X3_FF version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.37.00\\bbgerabasic_platform_binaries-prerelease-V43.36.00.00001\\Releases\\CIM550\\GBP_CIM550_R_Merged_FF_V43.36.00.00001.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104" 
+
+  - id: Test 6
+    scenario: Update to X2_FF version from X1_FF version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00001\\Releases\\CIM550\\GBP_CIM550_R_Merged_FF_V43.37.00.00001.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104"     
+
+  - id: Test 7
+    scenario: Update to X1_88 version from X2_FF version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.37.00\\bbgerabasic_platform_binaries-prerelease-V43.36.00.00001\\Releases\\CIM550\\GBP_CIM550_R_Merged_88_V43.36.00.00001.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104"     
+
+  - id: Test 8
+    scenario: Update to X3_RAND version from X1_88 version
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00010\\Releases\\CIM550\\GBP_CIM550_R_Merged_Rand_V43.37.00.00010.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x104" 
+
+  - id: Test 9
+    scenario: Try to update to X1_Rand one bit corrupt version from X3_RAND version(shouldn't happen)
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.37.00\\bbgerabasic_platform_binaries-prerelease-V43.36.00.00001\\Releases\\CIM550\\GBP_CIM550_R_Merged_Rand_V43.36.00.00001_onebitcorruptused.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x10F"  
+
+  - id: Test 10
+    scenario: Try to update with invalid different product X1_Rand version(shouldn't happen)
+    delivery_method: SelfProgrammer
+    reset_type: install
+    board_number: 29
+    flash_srec: 
+    update_pkg: "C:\\GBP_Testing\\V43.37.00\\bbgerabasic_platform_binaries-prerelease-V43.36.00.00001\\Releases\\MIXIT_GEN4_AutoGen\\GBP_MixIt_R_Merged_Rand_V43.36.00.00001.xcbin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 1
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x109" 
+
+  

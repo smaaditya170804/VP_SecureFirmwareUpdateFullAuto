@@ -35,7 +35,16 @@ def build_cmd(a: argparse.Namespace) -> list[str]:
         cmd += ["-erasechip"]
 
     # open image and base address
-    cmd += ["-open", a.image, hex(a.addr).lower()]
+    # For address-embedded formats (SREC/HEX/MOT), passing an extra address token
+    # is invalid for J-Flash CLI and can be interpreted as an unknown parameter.
+    image_suffix = Path(a.image).suffix.lower()
+    embedded_address_formats = {
+        ".srec", ".s19", ".s28", ".s37", ".mot", ".hex", ".ihex", ".elf"
+    }
+    if image_suffix in embedded_address_formats:
+        cmd += ["-open", a.image]
+    else:
+        cmd += ["-open", a.image, hex(a.addr).lower()]
 
     if a.programverify:
         cmd += ["-programverify"]

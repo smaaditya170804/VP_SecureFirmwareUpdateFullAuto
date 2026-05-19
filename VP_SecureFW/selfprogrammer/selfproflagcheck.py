@@ -87,6 +87,8 @@ def main():
     ap = argparse.ArgumentParser(description="SelfProgrammer: read flags before/after reset and parse")
     ap.add_argument("--exe", required=True, help="Full path to SelfProg_Tool.exe")
     ap.add_argument("--logdir", default="logs", help="Directory for logs (default: logs)")
+    ap.add_argument("--reset-type", choices=["install", "reset"], default="install",
+                    help="Command to apply between the two /readflag operations (default: install)")
     ap.add_argument("--install", action="store_true",
                     help="Send /install between the two /readflag operations")
     ap.add_argument("--wait", type=int, default=6,
@@ -105,6 +107,11 @@ def main():
     after_dl = logdir / f"readflag_after_download_{ts}.log"
     after_reset = logdir / f"readflag_after_reset_{ts}.log"
     install_log = logdir / f"install_{ts}.log"
+    reset_log = logdir / f"reset_{ts}.log"
+
+    reset_type = args.reset_type
+    if args.install:
+        reset_type = "install"
 
     if not args.quiet:
         print("=== SelfProg Flag Check =======================================")
@@ -122,26 +129,27 @@ def main():
         if not args.quiet:
             print(f"\n[OK] Saved 'after download' flags to {after_dl}")
 
-    # 2) optional /install
-    if args.install:
-        rc_inst, _ = run_and_capture([exe, "/install"], install_log, quiet=args.quiet)
-        if rc_inst != 0 and not args.quiet:
-            print(f"[WARN] /install returned {rc_inst}. See {install_log}")
-        # brief wait, then retries for 2nd readflag
-        time.sleep(max(0, args.wait))
-
-        text2 = ""
-        rc2 = 1
-        for i in range(max(1, args.retries)):
-            rc2, text2 = run_and_capture([exe, "/readflag"], after_reset, quiet=args.quiet)
-            if looks_like_valid_flag_dump(text2):
-                break
-            if not args.quiet:
-                print(f"[INFO] 2nd /readflag did not look complete, retry {i+1}/{args.retries} …")
-            time.sleep(max(1, args.interval))
+    # 2) command between the two /readflag operations (/install or /reset)
+    if reset_type == "install":
+        rc_cmd, _ = run_and_capture([exe, "/install"], install_log, quiet=args.quiet)
+        if rc_cmd != 0 and not args.quiet:
+            print(f"[WARN] /install returned {rc_cmd}. See {install_log}")
     else:
-        input("\n[Action] Reset/Power-cycle the device now, then press <Enter> to continue … ")
+        rc_cmd, _ = run_and_capture([exe, "/reset"], reset_log, quiet=args.quiet)
+        if rc_cmd != 0 and not args.quiet:
+            print(f"[WARN] /reset returned {rc_cmd}. See {reset_log}")
+
+    time.sleep(max(0, args.wait))
+
+    text2 = ""
+    rc2 = 1
+    for i in range(max(1, args.retries)):
         rc2, text2 = run_and_capture([exe, "/readflag"], after_reset, quiet=args.quiet)
+        if looks_like_valid_flag_dump(text2):
+            break
+        if not args.quiet:
+            print(f"[INFO] 2nd /readflag did not look complete, retry {i+1}/{args.retries} …")
+        time.sleep(max(1, args.interval))
 
     if rc2 != 0:
         if not args.quiet:

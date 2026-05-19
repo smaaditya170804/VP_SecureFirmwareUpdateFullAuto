@@ -1,0 +1,18 @@
+name: CIM550Main Production Firmware Update Test Plan
+product_name: CIM550
+tests:
+  - id: Test 1.1
+    scenario: Ensure BLE X2 version 
+    delivery_method_ble: SelfProgrammer
+    reset_type: reset
+    update_pkg_ble: "C:\\GBP_Testing\\V43.38.00\\BLE_Binaries\\msrModule_sq_cu_cc2652R7-V06.00.02.00001\\msrModule_sq_cu_CC2652R7_92853183V06.00.02.00001_fw_update.bin"
+    expected_flags_after_reset_ble:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x100"
+
+  - id: Test 1.2
+    scenario: Flash SelfProgrammer.srec 
+    flash_srec: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00010\\Releases\\CIM550\\Prod_Bin\\CIM550_SelfProgrammerV43.37.00.00010.srec"

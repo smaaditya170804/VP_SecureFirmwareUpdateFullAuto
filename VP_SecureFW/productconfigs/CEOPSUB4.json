@@ -1,0 +1,24 @@
+{
+  "product_name": "CEOPSUB4",
+  "id_code": "453E68F738451A4A7CCBB664BF6E3480",
+
+  "rfp_exe": "C:\\Program Files (x86)\\Renesas Electronics\\Programming Tools\\Renesas Flash Programmer V3.23\\rfp-cli.exe",
+  "rfp_device": "RX100",
+  "rfp_tool": "e2l",
+  "rfp_interface": "fine",
+
+  "jflash_exe": "C:\\Program Files\\SEGGER\\JLink_V938a\\JFlashSPI_CL.exe",
+  "jflash_project": "C:\\Software\\J-Flash SPI_Projects\\V9.12\\jlinkflash.jflash",
+
+  "selfprog_exe": "C:\\GrundfosTools\\SelfProgrammer\\PCTool_06_05_26_11_54\\PCTool_06_05_26_11_54\\SelfProg_Tool.exe",
+
+  "relay_on_script": "relaycontrol/relayon.py",
+  "relay_off_script": "relaycontrol/relayoff.py",
+
+  "serial_port": 4,
+  "serial_baud": 38400,
+  "board_number": 37,
+  "ble_board_number": 30
+  
+  
+}

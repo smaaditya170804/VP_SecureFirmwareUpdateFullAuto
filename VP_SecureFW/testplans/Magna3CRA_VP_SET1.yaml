@@ -1,12 +1,12 @@
-name: SaverAdvPlus VP Firmware Upgrade SET 1
+name: Magna3CRA VP Firmware Upgrade SET 1
 
 tests:
   - id: Test 1
     scenario: Higher Boot + Application update in VP mode
     delivery_method: JFlash
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\R_11122244V01.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\R_92597351V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -18,7 +18,7 @@ tests:
     scenario: Boot + Application Update
     delivery_method: SelfProgrammer
     reset_type: install
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.bin"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -30,8 +30,8 @@ tests:
     scenario: Same Boot + Same Application Version
     delivery_method: JFlash
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\R_11122244V01.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\R_92597351V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 255
       FwUpdate_frez: 1
@@ -43,7 +43,7 @@ tests:
     scenario: Boot + Application Update
     delivery_method: SelfProgrammer
     reset_type: install
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -55,8 +55,8 @@ tests:
     scenario: Both lower version of boot + app [FW Downgrade Test]
     delivery_method: JFlash
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\R_11122244V02.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\R_92597351V02.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 255
       FwUpdate_frez: 255
@@ -68,7 +68,7 @@ tests:
     scenario: Boot + Application update
     delivery_method: JFlash
     reset_type: install
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.bin"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -80,8 +80,8 @@ tests:
     scenario: Both lower version of boot + app [SAP Number Different]
     delivery_method: JFlash
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\R_01010101V02.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\R_57597351V02.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V01.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -93,7 +93,7 @@ tests:
     scenario: Boot + Application update
     delivery_method: SelfProgrammer
     reset_type: install
-    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\11122244V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
+    update_pkg: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\92597351V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.bin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -105,7 +105,7 @@ tests:
     scenario: Give install command without update package
     delivery_method: InstallOnly
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.34.01.00026\\Releases\\SaVerAdvPlus_SB_binaries\\VP_SET_1\\R_11122244V01.01.00.00001_INT_Image_R.srec"
+    flash_srec: "C:\\GBP_Testing\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.36.01.00064\\Releases\\GBP_Magna3CRA_SB\\VP_SET_1\\R_92597351V01.01.00.00001_INT_Image_R.srec"
     expected_flags_after_reset:
       FwUpdate_req: 255
       FwUpdate_frez: 1
