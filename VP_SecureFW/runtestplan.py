@@ -54,6 +54,62 @@ except ImportError:
     sys.exit(1)
 
 # -----------------------------------------------------------------------------
+# Email helper
+# -----------------------------------------------------------------------------
+def send_report_email(report_path: Path, recipient: str):
+    """
+    Send the generated report as an email attachment via Gmail SMTP.
+
+    Credentials are read from environment variables to avoid storing secrets:
+        GMAIL_SENDER        - your Gmail address (e.g. you@gmail.com)
+        GMAIL_APP_PASSWORD  - a Gmail App Password (16-char, no spaces)
+                              Generate one at: https://myaccount.google.com/apppasswords
+
+    If either variable is absent you will be prompted interactively.
+    """
+    import smtplib
+    import os
+    import getpass
+    from email.message import EmailMessage
+
+    sender = os.environ.get("GMAIL_SENDER", "").strip()
+    if not sender:
+        sender = input("[EMAIL] Sender Gmail address: ").strip()
+
+    password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
+    if not password:
+        password = getpass.getpass("[EMAIL] Gmail App Password (input hidden): ")
+
+    msg = EmailMessage()
+    msg["Subject"] = f"Test Report: {report_path.name}"
+    msg["From"] = sender
+    msg["To"] = recipient
+    msg.set_content(
+        f"Please find the attached test report: {report_path.name}\n\n"
+        "This report was generated automatically by runtestplan.py."
+    )
+
+    with open(report_path, "rb") as fh:
+        msg.add_attachment(
+            fh.read(),
+            maintype="application",
+            subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            filename=report_path.name,
+        )
+
+    print(f"[EMAIL] Sending report to {recipient} ...")
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(sender, password)
+            smtp.send_message(msg)
+        print(f"[EMAIL] Report sent successfully to {recipient}.")
+    except smtplib.SMTPAuthenticationError:
+        print("[EMAIL] Authentication failed. Make sure you are using a Gmail App Password, not your regular password.")
+        print("        Generate one at: https://myaccount.google.com/apppasswords")
+    except Exception as exc:
+        print(f"[EMAIL] Failed to send report: {exc}")
+
+# -----------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
@@ -244,6 +300,9 @@ def selfprog_flagcheck_install(cfg: dict, expected_flags: dict = None, wait_sec=
         "--wait", str(wait_sec),
         "--retries", str(retries),
         "--interval", str(interval),
+        "--port", str(cfg.get("serial_port", 8)),
+        "--baud", str(cfg.get("serial_baud", 38400)),
+        "--board", str(cfg.get("board_number", 48)),
         "--quiet"
     ]
     print(f"  [*] Running SelfProg flag check with {reset_type} [{board_label.upper()} board]...")
@@ -467,7 +526,17 @@ def main():
     ap.add_argument("--start-from", dest="start_from", default=None, help="Start from a specific test ID and run remaining tests")
     ap.add_argument("--repeat", type=int, default=1, metavar="N",
                     help="Run the entire testplan N times (default: 1). A report is generated after each completed run.")
-    
+    ap.add_argument(
+        "--send-report-to",
+        dest="send_report_to",
+        default=None,
+        metavar="EMAIL",
+        help=(
+            "Email address to send the generated report to via Gmail SMTP. "
+            "Set GMAIL_SENDER and GMAIL_APP_PASSWORD environment variables to avoid interactive prompts."
+        ),
+    )
+
     args = ap.parse_args()
     
     testplan_path = Path(args.testplan).resolve()
@@ -772,6 +841,9 @@ def main():
             
             wb.save(str(reports_dir / report_name))
             print(f"[INFO] Report generated: {reports_dir / report_name}")
+            # Send report by email if requested
+            if args.send_report_to:
+                send_report_email(reports_dir / report_name, args.send_report_to)
             # cleanup log files now that report exists
             for logdir in ROOT.rglob('logs'):
                 if logdir.is_dir():

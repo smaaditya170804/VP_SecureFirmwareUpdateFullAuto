@@ -1,3 +1,3 @@
 import serial
 
-serial.Serial('COM15',9600).write(b'0')
+serial.Serial('COM10',9600).write(b'0')

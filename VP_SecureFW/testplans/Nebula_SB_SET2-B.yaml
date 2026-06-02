@@ -1,12 +1,12 @@
-name: Nebula Two Stage Secure Firmware Upgrade SET 1
+name: Nebula Two Stage Secure Firmware Upgrade SET 2
 
 tests:
   - id: Test 1
     scenario: Application Update
     delivery_method: SelfProgrammer
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\R_93560895V01.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V02.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.sxcbin"
+    flash_srec: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\R_93560895V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -18,8 +18,8 @@ tests:
     scenario: Boot + Application update w/ version change
     delivery_method: SelfProgrammer
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\R_93560895V01.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.sxcbin"
+    flash_srec: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\R_93560895V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -32,7 +32,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -45,33 +45,33 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 1
       FwUpdate_rollbk: 255
-      SelfProg Error Code: "0x601"    
+      SelfProg Error Code: "0x20A0"    
 
   - id: Test 3
     scenario: Higher Boot + Higher/Same Application update w/ Boot encrypted image corrupted
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V02.01.00.00002_R_K_TSIP_BL_03_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00002_R_K_TSIP_BL_03_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 1
       FwUpdate_rollbk: 255
-      SelfProg Error Code: "0x601" 
+      SelfProg Error Code: "0x2060" 
 
   - id: Test 4
     scenario: Same Boot + higer Application version w/ App encrypted image corrupted
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V04.01.01.00001_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V04.01.01.00001_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -84,7 +84,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V04.01.00.00001_R_K_TSIP_BL_04_01_00_00001_EXT_UpdPkg_Ainvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V04.01.00.00001_R_K_TSIP_BL_04_01_00_00001_EXT_UpdPkg_Ainvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -97,7 +97,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -110,59 +110,59 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"  
+      SelfProg Error Code: "0x4A0"  
 
   - id: Test 6
     scenario: Same Boot + Same Application version update w/ Boot encrypted image corrupted
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601" 
+      SelfProg Error Code: "0x2060" 
 
   - id: Test 6.1
     scenario: Repeat Same Boot + Application version update w/ Boot encrypted image corrupted
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601" 
+      SelfProg Error Code: "0x2060" 
 
   - id: Test 7
     scenario: Higher Boot Version + Same app version
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V05.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 1
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0x4A0"
 
   - id: Test 8
     scenario: Higher Boot Version + Higher app version
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V06.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V06.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -175,46 +175,46 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 1
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0x260"
 
   - id: Test 10
     scenario: Higher Boot + Higher App w/ wrong SAP in S2BL
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V07.01.00.00001_R_K_TSIP_BL_07_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V07.01.00.00001_R_K_TSIP_BL_07_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 1
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0x10020"
 
   - id: Test 11
     scenario: Higher Boot + Higher App w/ wrong Magic in S2BL
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 1
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0x10020"
 
   - id: Test 12
     scenario: Higher Boot + Higher App version
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V08.01.00.00002_R_K_TSIP_BL_08_01_00_00002_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V08.01.00.00002_R_K_TSIP_BL_08_01_00_00002_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -227,62 +227,62 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_S2.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_S2.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0x10020"
 
   - id: Test 14
     scenario: Higher App version w/ only App in the package
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0x10020"
 
   - id: Test 15
     scenario: Higher Boot + Higher App w/ invalid version string in S2BL
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V09.01.00.00001_R_K_TSIP_BL_09_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00001_R_K_TSIP_BL_09_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
       FwUpdate_actbin: 0
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0x10020"
 
   - id: Test 16
     scenario: Higher Boot + Higher App w/ encryption by an invalid ECDSA key
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V09.01.00.00002_R_K_TSIP_BL_09_01_00_00002_EXT_UpdPkg_Kinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00002_R_K_TSIP_BL_09_01_00_00002_EXT_UpdPkg_Kinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
-      FwUpdate_actbin: 0
+      FwUpdate_actbin: 1
       FwUpdate_rollbk: 0
-      SelfProg Error Code: "0x601"
+      SelfProg Error Code: "0xAF"
 
   - id: Test 17
     scenario: Higher Boot + Higher App
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_Nebula_SB\\SET_1\\93560895V09.02.00.00999_R_K_TSIP_BL_09_02_00_00999_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.02.00.00999_R_K_TSIP_BL_09_02_00_00999_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
-      FwUpdate_actbin: 1
+      FwUpdate_actbin: 0
       FwUpdate_rollbk: 0
       SelfProg Error Code: "0xAF"

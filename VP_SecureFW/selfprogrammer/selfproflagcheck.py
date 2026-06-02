@@ -97,6 +97,9 @@ def main():
                     help="Retries for 2nd /readflag (default: 5)")
     ap.add_argument("--interval", type=int, default=2,
                     help="Seconds between retries (default: 2)")
+    ap.add_argument("--port", type=int, default=None, help="COM port number to reconnect before reading flags")
+    ap.add_argument("--baud", type=int, default=None, help="Baud rate to reconnect before reading flags")
+    ap.add_argument("--board", type=int, default=None, help="Board number to reconnect before reading flags")
     ap.add_argument("--quiet", action="store_true",
                     help="Suppress tool output (only show final table)")
     args = ap.parse_args()
@@ -108,6 +111,7 @@ def main():
     after_reset = logdir / f"readflag_after_reset_{ts}.log"
     install_log = logdir / f"install_{ts}.log"
     reset_log = logdir / f"reset_{ts}.log"
+    connect_log = logdir / f"connect_{ts}.log"
 
     reset_type = args.reset_type
     if args.install:
@@ -118,6 +122,20 @@ def main():
         print(f"[INFO] EXE   : {exe}")
         print(f"[INFO] Logs  : {logdir.resolve()}")
         print("===============================================================\n")
+
+    # 0) Re-establish connection (COM port, baud, board) before reading flags
+    if args.port is not None:
+        rc_c, _ = run_and_capture([exe, "/c", str(args.port)], connect_log, quiet=args.quiet)
+        if rc_c != 0 and not args.quiet:
+            print(f"[WARN] /c {args.port} returned {rc_c}")
+    if args.baud is not None:
+        rc_b, _ = run_and_capture([exe, "/baudrate", "-download", str(args.baud)], connect_log, quiet=args.quiet)
+        if rc_b != 0 and not args.quiet:
+            print(f"[WARN] /baudrate -download {args.baud} returned {rc_b}")
+    if args.board is not None:
+        rc_bn, _ = run_and_capture([exe, "/setboardnumber", str(args.board)], connect_log, quiet=args.quiet)
+        if rc_bn != 0 and not args.quiet:
+            print(f"[WARN] /setboardnumber {args.board} returned {rc_bn}")
 
     # 1) /readflag  --> after download
     rc1, text1 = run_and_capture([exe, "/readflag"], after_dl, quiet=args.quiet)
