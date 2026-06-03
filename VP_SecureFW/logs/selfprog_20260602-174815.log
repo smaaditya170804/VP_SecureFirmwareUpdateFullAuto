@@ -28,10 +28,10 @@ Board Number 52 is set for Programming[STEP EXIT CODE] 0
  Reading commandline parameters
 
  Download parameter readChecking for the file availablitiy
-Full Path : C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin
+Full Path : C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin
 Given binary file is valid. It is used for this download
 
- Setting value C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin for File
+ Setting value C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin for File
 
 
  Reading Port value from settings file
@@ -40,7 +40,7 @@ Given binary file is valid. It is used for this download
 
 
  Reading File value from settings file
- Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin.
+ Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin.
 
 
 
@@ -76,7 +76,7 @@ Given binary file is valid. It is used for this download
 Comparing the version
 
  Reading File value from settings file
- Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin.
+ Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin.
 
 
 
@@ -3905,160 +3905,4 @@ Packet 15048 Sent
 Packet 15052 Sent
 Packet 15056 Sent
 Packet 15060 Sent
-Packet 15064 Sent
-Packet 15068 Sent
-Packet 15072 Sent
-Packet 15076 Sent
-Packet 15080 Sent
-Packet 15084 Sent
-Packet 15088 Sent
-Packet 15092 Sent
-Packet 15096 Sent
-Packet 15100 Sent
-Packet 15104 Sent
-Packet 15108 Sent
-Packet 15112 Sent
-Packet 15116 Sent
-Packet 15120 Sent
-Packet 15124 Sent
-Packet 15128 Sent
-Packet 15132 Sent
-Packet 15136 Sent
-Packet 15140 Sent
-Packet 15144 Sent
-Packet 15148 Sent
-Packet 15152 Sent
-Packet 15156 Sent
-Packet 15160 Sent
-Packet 15164 Sent
-Packet 15168 Sent
-Packet 15172 Sent
-Packet 15176 Sent
-Packet 15180 Sent
-Packet 15184 Sent
-Packet 15188 Sent
-Packet 15192 Sent
-Packet 15196 Sent
-Packet 15200 Sent
-Packet 15204 Sent
-Packet 15208 Sent
-Packet 15212 Sent
-Packet 15216 Sent
-Packet 15220 Sent
-Packet 15224 Sent
-Packet 15228 Sent
-Packet 15232 Sent
-Packet 15236 Sent
-Packet 15240 Sent
-Packet 15244 Sent
-Packet 15248 Sent
-Packet 15252 Sent
-Packet 15256 Sent
-Packet 15260 Sent
-Packet 15264 Sent
-Packet 15268 Sent
-Packet 15272 Sent
-Packet 15276 Sent
-Packet 15280 Sent
-Packet 15284 Sent
-Packet 15288 Sent
-Packet 15292 Sent
-Packet 15296 Sent
-Packet 15300 Sent
-Packet 15304 Sent
-Packet 15308 Sent
-Packet 15312 Sent
-Packet 15316 Sent
-Packet 15320 Sent
-Packet 15324 Sent
-Packet 15328 Sent
-Packet 15332 Sent
-Packet 15336 Sent
-Packet 15340 Sent
-Packet 15344 Sent
-Packet 15348 Sent
-Packet 15352 Sent
-Packet 15356 Sent
-Packet 15360 Sent
-Packet 15364 Sent
-Packet 15368 Sent
-Packet 15372 Sent
-Packet 15376 Sent
-Packet 15380 Sent
-Packet 15384 Sent
-Packet 15388 Sent
-Packet 15392 Sent
-Packet 15396 Sent
-Packet 15400 Sent
-Packet 15404 Sent
-Packet 15408 Sent
-Packet 15412 Sent
-Packet 15416 Sent
-Packet 15420 Sent
-Packet 15424 Sent
-Packet 15428 Sent
-Packet 15432 Sent
-Packet 15436 Sent
-Packet 15440 Sent
-Packet 15444 Sent
-Packet 15448 Sent
-Packet 15452 Sent
-Packet 15456 Sent
-Packet 15460 Sent
-Packet 15464 Sent
-Packet 15468 Sent
-Packet 15472 Sent
-Packet 15476 Sent
-Packet 15480 Sent
-Packet 15484 Sent
-Packet 15488 Sent
-Packet 15492 Sent
-Packet 15496 Sent
-Packet 15500 Sent
-Packet 15504 Sent
-Packet 15508 Sent
-Packet 15512 Sent
-Packet 15516 Sent
-Packet 15520 Sent
-Packet 15524 Sent
-Packet 15528 Sent
-Packet 15532 Sent
-Packet 15536 Sent
-Packet 15540 Sent
-Packet 15544 Sent
-Packet 15548 Sent
-Packet 15552 Sent
-Packet 15556 Sent
-Packet 15560 Sent
-Packet 15564 Sent
-Packet 15568 Sent
-Packet 15572 Sent
-Packet 15576 Sent
-Packet 15580 Sent
-Packet 15584 Sent
-Packet 15588 Sent
-Packet 15592 Sent
-Packet 15596 Sent
-Packet 15600 Sent
-Packet 15604 Sent
-Packet 15608 Sent
-Packet 15612 Sent
-Packet 15616 Sent
-Packet 15620 Sent
-Packet 15624 Sent
-Packet 15628 Sent
-Packet 15632 Sent
-Packet 15636 Sent
-Packet 15640 Sent
-Packet 15644 Sent
-Packet 15648 Sent
-Packet 15652 Sent
-Packet 15656 Sent
-Packet 15660 Sent
-Packet 15664 Sent
-Packet 15668 Sent
-Packet 15672 Sent
-Packet 15676 Sent
-Packet 15680 Sent
-Packet 15684 Sent
-Packet 15687 Sent[STEP EXIT CODE] 0
+Packet 15064 Sent[STEP EXIT CODE] 0

@@ -28,10 +28,10 @@ Board Number 52 is set for Programming[STEP EXIT CODE] 0
  Reading commandline parameters
 
  Download parameter readChecking for the file availablitiy
-Full Path : C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin
+Full Path : C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin
 Given binary file is valid. It is used for this download
 
- Setting value C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin for File
+ Setting value C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin for File
 
 
  Reading Port value from settings file
@@ -40,7 +40,7 @@ Given binary file is valid. It is used for this download
 
 
  Reading File value from settings file
- Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin.
+ Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin.
 
 
 
@@ -76,7 +76,7 @@ Given binary file is valid. It is used for this download
 Comparing the version
 
  Reading File value from settings file
- Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin.
+ Value for File is C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\93560895V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin.
 
 
 

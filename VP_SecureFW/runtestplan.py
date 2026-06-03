@@ -72,11 +72,25 @@ def send_report_email(report_path: Path, recipient: str):
     import getpass
     from email.message import EmailMessage
 
-    sender = os.environ.get("GMAIL_SENDER", "").strip()
+    # Try process env first, then fall back to the persistent User-level store
+    # (needed when the terminal was not restarted after setting the variables).
+    def _get_env(key: str) -> str:
+        val = os.environ.get(key, "").strip()
+        if not val:
+            try:
+                import winreg
+                with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as reg:
+                    val, _ = winreg.QueryValueEx(reg, key)
+                    val = (val or "").strip()
+            except Exception:
+                pass
+        return val
+
+    sender = _get_env("GMAIL_SENDER")
     if not sender:
         sender = input("[EMAIL] Sender Gmail address: ").strip()
 
-    password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
+    password = _get_env("GMAIL_APP_PASSWORD")
     if not password:
         password = getpass.getpass("[EMAIL] Gmail App Password (input hidden): ")
 
