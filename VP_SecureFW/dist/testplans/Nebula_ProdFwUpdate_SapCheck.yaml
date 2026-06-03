@@ -1,0 +1,34 @@
+name: Nebula Production Firmware Update Test Plan
+product_name: Nebula
+tests:
+  - id: Test 1.1
+    scenario: Ensure BLE X2 version
+    flash_srec: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00010\\Releases\\Nebula\\GBP_Nebula_R_Merged.srec"
+    delivery_method_ble: SelfProgrammer
+    reset_type: reset
+    update_pkg_ble: "C:\\GBP_Testing\\V43.38.00\\BLE_Binaries\\msrModule_sq_cu_cc2652R7-V06.00.02.00001\\msrModule_sq_cu_CC2652R7_92853183V06.00.02.00001_fw_update.bin"
+    expected_flags_after_reset_ble:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x100"
+
+  - id: Test 1.2
+    scenario: Flash SelfProgrammer.srec
+    flash_srec: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00010\\Releases\\Nebula\\Prod_Bin\\Nebula_SelfProgrammerV43.37.00.00010.srec"
+    delivery_method: JFlash
+    reset_type: install
+    update_pkg: "C:\\GBP_Testing\\V43.38.00\\bbgerabasic_platform_binaries-prerelease-V43.37.00.00010\\Releases\\Nebula\\Prod_Bin\\Nebula_ProdSign_V43.37.00.00010_Key_FF_BLE_V5.0.6.2_WIFI_V3.7.0.1.bin"
+    expected_flags_after_reset:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0xAF"
+    expected_flags_after_reset_ble:
+      FwUpdate_req: 0
+      FwUpdate_frez: 1
+      FwUpdate_actbin: 0
+      FwUpdate_rollbk: 255
+      SelfProg Error Code: "0x100"

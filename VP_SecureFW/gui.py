@@ -25,10 +25,21 @@ from tkinter import filedialog, messagebox, scrolledtext, ttk
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
-ROOT = Path(__file__).resolve().parent
+# When running as a PyInstaller onefile exe, sys.executable is the exe itself;
+# __file__ would point to the temp _MEIPASS extraction folder instead.
+if getattr(sys, "frozen", False):
+    ROOT = Path(sys.executable).resolve().parent
+else:
+    ROOT = Path(__file__).resolve().parent
 TESTPLANS_DIR = ROOT / "testplans"
 PRODUCTCONFIGS_DIR = ROOT / "productconfigs"
 REPORTS_DIR = ROOT / "reports"
+
+
+def resource_path(filename: str) -> str:
+    """Return path to a bundled resource (works both frozen and normal)."""
+    base = getattr(sys, "_MEIPASS", ROOT)
+    return str(Path(base) / filename)
 
 # ---------------------------------------------------------------------------
 # Colours / Fonts  (centralised for easy theming)
@@ -1301,6 +1312,10 @@ class App(tk.Tk):
         self.geometry("1020x780")
         self.minsize(820, 620)
         self.configure(bg=CLR["bg"])
+        try:
+            self.iconbitmap(resource_path("images.ico"))
+        except Exception:
+            pass
 
         # State
         self._proc: subprocess.Popen | None = None
