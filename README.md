@@ -12,6 +12,7 @@ This framework automates the testing of firmware update processes across multipl
 - **SREC Support**: Initial device programming with Renesas Flash Programmer
 - **Intelligent Retry Logic**: Automatic retries for failed tests with sequence restarts
 - **Comprehensive Reporting**: Excel reports with detailed flag comparisons
+- **Repeat Execution**: Run the entire testplan any number of times with a dedicated report generated after each run
 - **Product Flexibility**: Easy configuration for new products via JSON configs
 - **Hardware Integration**: Relay control for power cycling during tests
 
@@ -172,11 +173,54 @@ python runtestplan.py testplans/YourProduct.yaml
 ### Advanced Options
 
 ```bash
-# Run only specific test
+# Run only a specific test
 python runtestplan.py testplans/YourProduct.yaml --only-test "Test 1"
 
-# Start from specific test
+# Start from a specific test and run the rest
 python runtestplan.py testplans/YourProduct.yaml --start-from "Test 3"
+
+# Run the entire testplan 5 times (a separate report is generated after each run)
+python runtestplan.py testplans/YourProduct.yaml --repeat 5
+
+# Combine: run only a specific test, repeated 3 times
+python runtestplan.py testplans/YourProduct.yaml --only-test "Test 1" --repeat 3
+```
+
+python runtestplan.py testplans/Nebula_SB_SET2.yaml --send-report-to smithunaaditya@gmail.com
+
+### Repeat Mode (`--repeat N`)
+
+Passing `--repeat N` runs the full testplan (or filtered subset) `N` times back-to-back.
+
+**Per-run behaviour:**
+- All execution state (results, retry counters, test index) is fully reset before each run, so every iteration is a completely clean slate.
+- The retry and sequence-restart logic operates independently within each run.
+- If a run completes without errors a report is saved to `reports/` and log files are cleaned up — exactly as in a normal single run.
+
+**Report naming when `--repeat > 1`:**
+
+```
+reports/YourProduct_20260519-151041_run1of5.xlsx
+reports/YourProduct_20260519-151042_run2of5.xlsx
+...
+```
+
+Each report carries its own timestamp and run index so no files are ever overwritten.
+
+**End-of-session summary:**
+
+After all runs finish, a summary table is printed to the console:
+
+```
+============================================================
+REPEAT SUMMARY  (5 runs)
+============================================================
+  Run 1: OK — report generated
+  Run 2: COMPLETED WITH ERRORS  (no report)
+  Run 3: OK — report generated
+  Run 4: OK — report generated
+  Run 5: OK — report generated
+============================================================
 ```
 
 ### Test Execution Flow
