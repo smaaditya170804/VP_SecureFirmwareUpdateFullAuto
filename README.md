@@ -6,21 +6,27 @@ A comprehensive firmware testing and validation framework for embedded devices, 
 
 This framework automates the testing of firmware update processes across multiple delivery methods (J-Flash, Self-Programmer, Install-Only) with robust retry logic and detailed reporting. It supports both SREC-based initial flashing and incremental update package deployment.
 
+A **Tkinter GUI** (`gui.py` / `SecureFW.exe`) is included for fully visual, click-based operation — no command-line knowledge required.
+
 ### Key Features
 
+- **Graphical User Interface**: Full Tkinter GUI for selecting, running, and managing test plans without using the command line
 - **Multiple Delivery Methods**: J-Flash, Self-Programmer, and Install-Only testing
 - **SREC Support**: Initial device programming with Renesas Flash Programmer
 - **Intelligent Retry Logic**: Automatic retries for failed tests with sequence restarts
 - **Comprehensive Reporting**: Excel reports with detailed flag comparisons
 - **Repeat Execution**: Run the entire testplan any number of times with a dedicated report generated after each run
-- **Product Flexibility**: Easy configuration for new products via JSON configs
-- **Hardware Integration**: Relay control for power cycling during tests
+- **Product Flexibility**: Easy configuration for new products via JSON configs — create and edit configs through the GUI
+- **Hardware Integration**: Relay control for power cycling during tests — COM port configurable from the GUI
+- **Visual Test Plan Editor**: Create and edit YAML test plans entirely through a graphical editor
 
 ## Project Structure
 
 ```
 VP_SecureFW/
-├── runtestplan.py              # Main test orchestration script
+├── gui.py                      # Tkinter GUI (main entry point for visual use)
+├── runtestplan.py              # Main test orchestration script (CLI / called by GUI)
+├── images.ico                  # Application icon
 ├── productconfigs/             # Product-specific configurations
 │   └── <ProductName>.json
 ├── testplans/                  # Test plan definitions
@@ -50,6 +56,7 @@ VP_SecureFW/
 - **Python 3.8+**
 - **PyYAML**: `pip install pyyaml`
 - **openpyxl**: `pip install openpyxl` (for Excel reports)
+- **pyserial**: `pip install pyserial` (for relay control)
 - **Hardware Tools**:
   - Renesas Flash Programmer V3.21+
   - SEGGER J-Link software
@@ -61,15 +68,72 @@ VP_SecureFW/
 1. Clone or copy the framework to your local machine
 2. Install Python dependencies:
    ```bash
-   pip install pyyaml openpyxl
+   pip install pyyaml openpyxl pyserial
    ```
 3. Verify hardware tool installations and paths
 
+---
+
+## GUI Usage (Recommended)
+
+### Running the GUI
+
+```bash
+python gui.py
+```
+
+Or run the pre-built standalone executable (no Python required on the target machine):
+
+```
+dist\SecureFW.exe
+```
+
+> **Note:** When using the exe, the `testplans/`, `productconfigs/`, `relaycontrol/`, `rfpflash/`, `jlinkflash/`, `selfprogrammer/`, `logs/`, and `reports/` folders must be present in the same directory as `SecureFW.exe`.
+
+### GUI Features
+
+#### Test Plan Panel
+- Select a test plan from the dropdown or browse for a YAML file
+- **✎ Edit Plan** — open the selected plan in the visual test plan editor
+- **+ New Plan** — create a brand-new test plan from scratch
+- **✕ Delete Plan** — permanently delete the selected test plan (with confirmation)
+
+#### Run Options
+- **Only Test** — run a single specific test from the plan
+- **Start From** — run from a chosen test through to the end
+- **Repeat** — run the full plan N times (separate report per run)
+- **Send Report To** — email address for automatic report delivery (requires `GMAIL_SENDER` and `GMAIL_APP_PASSWORD` environment variables)
+
+#### Product Config Panel
+- View the product config linked to the current test plan
+- **Edit** — open the product config editor (tabs: Basic, RFP Flash, J-Flash, SelfProgrammer, Relay Control)
+- **New** — create a new product configuration
+
+#### Relay Control Panel
+- Set the COM port and baud rate for the relay hardware
+- **Apply** — writes the settings directly to `relaycontrol/relayon.py` and `relayoff.py`
+
+#### Visual Test Plan Editor
+Each test in a plan has five editing tabs:
+| Tab | What you can configure |
+|---|---|
+| **Basic** | Test ID, Scenario, Delivery Method, Reset Type, Board # Override |
+| **Files** | Flash SREC path, Update Package path (with Browse buttons) |
+| **Flags (Main)** | Expected flag values for the main board after reset |
+| **BLE Board** | Enable/disable BLE board, delivery method, package, expected flags |
+| **WiFi Board** | Enable/disable WiFi board, delivery method, package, expected flags |
+
+Tests can be reordered (↑ Up / ↓ Down), duplicated (⧉ Dupe), or removed (✕ Del) from the left panel.
+
+---
+
 ## Configuration for New Products
 
-### 1. Create Product Configuration
+### Using the GUI (Recommended)
 
-Create a JSON file in `productconfigs/` named `<ProductName>.json`:
+Click **New** in the Product Config panel to open the visual editor. Fill in the fields across the five tabs and click **Save**. The JSON file is created automatically in `productconfigs/`.
+
+### Manually — Create Product Configuration
 
 ```json
 {
@@ -160,11 +224,19 @@ tests:
 
 ### 3. Update Hardware Scripts (if needed)
 
-The relay control scripts (`relaycontrol/relayon.py` and `relayoff.py`) may need modification for your specific hardware setup. These scripts typically control power relays for device reset/power cycling.
+The relay control scripts (`relaycontrol/relayon.py` and `relayoff.py`) control the power relay. You can update the COM port and baud rate directly from the **Relay Control** panel in the GUI (click **Apply**), or edit the scripts manually.
 
 ## Running Tests
 
-### Basic Usage
+### Via the GUI (Recommended)
+
+1. Launch `python gui.py` or `dist\SecureFW.exe`
+2. Select a test plan from the **Test Plan File** dropdown
+3. Set any run options (Only Test, Start From, Repeat, email)
+4. Click **▶ Run Tests**
+5. Watch live output in the Console — reports appear in the **Generated Reports** panel when done
+
+### Via Command Line (Advanced)
 
 ```bash
 python runtestplan.py testplans/YourProduct.yaml
@@ -320,6 +392,36 @@ The framework validates device state by comparing actual flag values against exp
 - Hex values are automatically normalized (e.g., "0xAF" → 175)
 - Mnemonic suffixes are parsed (e.g., "0x000000AF (FWU_SUCCESS)" → 175)
 - Case-insensitive string comparison for non-numeric flags
+
+## Building the Standalone Executable
+
+To produce `SecureFW.exe` (no Python installation required on the target machine):
+
+```bash
+pip install pyinstaller
+cd VP_SecureFW
+pyinstaller --onefile --windowed --name "SecureFW" --icon="images.ico" --add-data "images.ico;." gui.py
+```
+
+The exe is created in `dist\`. Copy the following folders next to it before distributing:
+
+```
+dist\
+├── SecureFW.exe
+├── runtestplan.py
+├── testplans\
+├── productconfigs\
+├── relaycontrol\
+├── rfpflash\
+├── jlinkflash\
+├── selfprogrammer\
+├── logs\
+└── reports\
+```
+
+> The exe detects it is frozen and resolves all paths relative to `SecureFW.exe`, not the Python temp folder.
+
+---
 
 ## Troubleshooting
 
