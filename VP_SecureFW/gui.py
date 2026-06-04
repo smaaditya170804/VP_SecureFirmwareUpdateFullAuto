@@ -1327,6 +1327,265 @@ class ProductConfigDialog(tk.Toplevel):
 
 
 # ---------------------------------------------------------------------------
+# Log Viewer Dialog
+# ---------------------------------------------------------------------------
+
+class LogViewerDialog(tk.Toplevel):
+    """Browse and display log files — sidebar category list + file list + viewer."""
+
+    # (display_label, source_folder_relative, filename_prefix_or_None)
+    _CATEGORIES = [
+        ("RFP Flash",          "rfpflash/logs",       None),
+        ("J-Flash",            "jlinkflash/logs",     None),
+        ("SelfProg Download",  "selfprogrammer/logs", "selfprog_"),
+        ("Read Flag",          "selfprogrammer/logs", "readflag_"),
+        ("Install",            "selfprogrammer/logs", "install_"),
+        ("Connect",            "selfprogrammer/logs", "connect_"),
+        ("Testplan",           "testplans/logs",      None),
+        ("General",            "logs",                None),
+    ]
+
+    def __init__(self, parent: tk.Tk):
+        super().__init__(parent)
+        self.title("Log Viewer")
+        self.geometry("1060x660")
+        self.minsize(780, 440)
+        self.configure(bg=CLR["bg"])
+        try:
+            self.iconbitmap(resource_path("images.ico"))
+        except Exception:
+            pass
+        self.transient(parent)
+
+        import datetime as _dt
+        self._dt = _dt
+
+        # file list per category label (same order as file listbox entries)
+        self._file_lists: dict[str, list[Path]] = {lbl: [] for lbl, *_ in self._CATEGORIES}
+        self._current_category: str = self._CATEGORIES[0][0]
+
+        self._build_ui()
+        self._populate_all()
+        # select first category
+        self._lb_cat.selection_set(0)
+        self._on_cat_select()
+
+    # ── Build ──────────────────────────────────────────────────────────
+
+    def _build_ui(self):
+        # ── Header ──
+        hdr = tk.Frame(self, bg=CLR["hdr_bg"], height=44)
+        hdr.pack(fill="x")
+        hdr.pack_propagate(False)
+        tk.Label(hdr, text="  Log Viewer", bg=CLR["hdr_bg"], fg=CLR["hdr_fg"],
+                 font=(FONT_FAMILY, 12, "bold")).pack(side="left", padx=14, pady=8)
+        tk.Label(hdr, text="Choose a category, then select a file to view",
+                 bg=CLR["hdr_bg"], fg="#90CAF9",
+                 font=(FONT_FAMILY, 9)).pack(side="right", padx=14)
+
+        # ── 3-column layout: categories | files | viewer ──
+        body = tk.Frame(self, bg=CLR["bg"])
+        body.pack(fill="both", expand=True, padx=8, pady=(8, 0))
+
+        # ── Column 1: Category list ──────────────────────────────────
+        col_cat = tk.Frame(body, bg=CLR["bg"], width=170)
+        col_cat.pack(side="left", fill="y", padx=(0, 6))
+        col_cat.pack_propagate(False)
+
+        tk.Label(col_cat, text="CATEGORY", bg=CLR["bg"], fg=CLR["accent"],
+                 font=(FONT_FAMILY, 9, "bold")).pack(anchor="w", pady=(0, 4))
+
+        cat_card = tk.Frame(col_cat, bg=CLR["panel_bg"], bd=1, relief="solid",
+                            highlightbackground=CLR["border"], highlightthickness=1)
+        cat_card.pack(fill="both", expand=True)
+
+        vsb_cat = tk.Scrollbar(cat_card, orient="vertical")
+        vsb_cat.pack(side="right", fill="y")
+        self._lb_cat = tk.Listbox(
+            cat_card,
+            yscrollcommand=vsb_cat.set,
+            selectmode="browse",
+            bg=CLR["panel_bg"],
+            fg="#212121",
+            selectbackground=CLR["accent"],
+            selectforeground="white",
+            font=(FONT_FAMILY, 9, "bold"),
+            relief="flat",
+            bd=0,
+            highlightthickness=0,
+            activestyle="none",
+        )
+        vsb_cat.config(command=self._lb_cat.yview)
+        self._lb_cat.pack(fill="both", expand=True)
+        for lbl, *_ in self._CATEGORIES:
+            self._lb_cat.insert("end", f"  {lbl}")
+        self._lb_cat.bind("<<ListboxSelect>>", lambda _e: self._on_cat_select())
+
+        ttk.Button(col_cat, text="↺ Refresh", style="Accent.TButton",
+                   command=self._refresh).pack(fill="x", pady=(4, 0))
+
+        # ── Column 2: File list ──────────────────────────────────────
+        col_files = tk.Frame(body, bg=CLR["bg"], width=260)
+        col_files.pack(side="left", fill="y", padx=(0, 6))
+        col_files.pack_propagate(False)
+
+        self._lbl_cat_title = tk.Label(col_files, text="FILES", bg=CLR["bg"],
+                                       fg=CLR["accent"], font=(FONT_FAMILY, 9, "bold"))
+        self._lbl_cat_title.pack(anchor="w", pady=(0, 4))
+
+        file_card = tk.Frame(col_files, bg=CLR["panel_bg"], bd=1, relief="solid",
+                             highlightbackground=CLR["border"], highlightthickness=1)
+        file_card.pack(fill="both", expand=True)
+
+        vsb_files = tk.Scrollbar(file_card, orient="vertical")
+        vsb_files.pack(side="right", fill="y")
+        hsb_files = tk.Scrollbar(file_card, orient="horizontal")
+        hsb_files.pack(side="bottom", fill="x")
+        self._lb_files = tk.Listbox(
+            file_card,
+            yscrollcommand=vsb_files.set,
+            xscrollcommand=hsb_files.set,
+            selectmode="browse",
+            bg=CLR["panel_bg"],
+            fg="#212121",
+            selectbackground=CLR["accent"],
+            selectforeground="white",
+            font=(FONT_FAMILY, 8),
+            relief="flat",
+            bd=0,
+            highlightthickness=0,
+            activestyle="none",
+        )
+        vsb_files.config(command=self._lb_files.yview)
+        hsb_files.config(command=self._lb_files.xview)
+        self._lb_files.pack(fill="both", expand=True)
+        self._lb_files.bind("<<ListboxSelect>>", lambda _e: self._on_file_select())
+
+        # ── Column 3: Viewer ─────────────────────────────────────────
+        col_view = tk.Frame(body, bg=CLR["bg"])
+        col_view.pack(side="left", fill="both", expand=True)
+
+        top_bar = tk.Frame(col_view, bg=CLR["bg"])
+        top_bar.pack(fill="x", pady=(0, 4))
+        self._lbl_filename = tk.Label(
+            top_bar, text="No file selected", bg=CLR["bg"],
+            fg=CLR["accent"], font=(FONT_FAMILY, 9, "bold"), anchor="w")
+        self._lbl_filename.pack(side="left", fill="x", expand=True)
+        ttk.Button(top_bar, text="Copy All", style="Accent.TButton",
+                   command=self._copy_content).pack(side="right")
+
+        self._viewer = scrolledtext.ScrolledText(
+            col_view,
+            bg=CLR["console_bg"],
+            fg=CLR["console_fg"],
+            font=FONT_MONO,
+            relief="flat",
+            bd=0,
+            wrap="none",
+            state="disabled",
+        )
+        self._viewer.pack(fill="both", expand=True)
+
+        # ── Bottom status bar ────────────────────────────────────────
+        self._lbl_status = tk.Label(
+            self, text="", bg=CLR["bg"], fg="#757575",
+            font=(FONT_FAMILY, 8), anchor="w")
+        self._lbl_status.pack(fill="x", padx=10, pady=(2, 6))
+
+    # ── Population ───────────────────────────────────────────────────
+
+    def _files_for_category(self, folder: str, prefix) -> list[Path]:
+        d = ROOT / folder
+        if not d.is_dir():
+            return []
+        files = [
+            f for f in d.iterdir()
+            if f.is_file() and (prefix is None or f.name.startswith(prefix))
+        ]
+        return sorted(files, key=lambda p: p.stat().st_mtime, reverse=True)
+
+    def _populate_all(self):
+        total = 0
+        for i, (label, folder, prefix) in enumerate(self._CATEGORIES):
+            files = self._files_for_category(folder, prefix)
+            self._file_lists[label] = files
+            total += len(files)
+            # Update category listbox entry with count
+            self._lb_cat.delete(i)
+            self._lb_cat.insert(i, f"  {label}  ({len(files)})")
+        self._lbl_status.config(text=f"{total} log files found across all categories")
+
+    def _refresh_file_list(self, label: str):
+        """Populate the file listbox for the given category."""
+        files = self._file_lists[label]
+        self._lb_files.delete(0, "end")
+        for f in files:
+            mtime = self._dt.datetime.fromtimestamp(f.stat().st_mtime)
+            self._lb_files.insert("end", f"  {f.name}  [{mtime.strftime('%d-%b  %H:%M')}]")
+        self._lbl_cat_title.config(text=f"FILES  —  {label}  ({len(files)})")
+
+    # ── Event handlers ───────────────────────────────────────────────
+
+    def _on_cat_select(self):
+        sel = self._lb_cat.curselection()
+        if not sel:
+            return
+        label = self._CATEGORIES[sel[0]][0]
+        self._current_category = label
+        self._refresh_file_list(label)
+        # clear viewer when switching category
+        self._lbl_filename.config(text="No file selected")
+        self._viewer.config(state="normal")
+        self._viewer.delete("1.0", "end")
+        self._viewer.config(state="disabled")
+        self._lbl_status.config(
+            text=f"{len(self._file_lists[label])} file(s) in '{label}'"
+        )
+
+    def _on_file_select(self):
+        sel = self._lb_files.curselection()
+        if not sel:
+            return
+        files = self._file_lists[self._current_category]
+        idx = sel[0]
+        if idx >= len(files):
+            return
+        self._load_file(files[idx])
+
+    def _load_file(self, path: Path):
+        try:
+            content = path.read_text(encoding="utf-8", errors="replace")
+        except Exception as exc:
+            content = f"[ERROR] Could not read file:\n{exc}"
+
+        self._viewer.config(state="normal")
+        self._viewer.delete("1.0", "end")
+        self._viewer.insert("end", content)
+        self._viewer.config(state="disabled")
+        self._viewer.see("end")
+
+        rel = str(path.relative_to(ROOT)) if path.is_relative_to(ROOT) else str(path)
+        self._lbl_filename.config(text=rel)
+        sz = path.stat().st_size if path.exists() else 0
+        mtime_str = self._dt.datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+        self._lbl_status.config(text=f"{rel}   —   {sz:,} bytes   |   modified {mtime_str}")
+
+    def _copy_content(self):
+        content = self._viewer.get("1.0", "end-1c")
+        if content:
+            self.clipboard_clear()
+            self.clipboard_append(content)
+
+    def _refresh(self):
+        self._populate_all()
+        self._refresh_file_list(self._current_category)
+        self._lbl_filename.config(text="No file selected")
+        self._viewer.config(state="normal")
+        self._viewer.delete("1.0", "end")
+        self._viewer.config(state="disabled")
+
+
+# ---------------------------------------------------------------------------
 # Main Application Window
 # ---------------------------------------------------------------------------
 
@@ -1334,8 +1593,10 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("SecureFW Test Framework")
-        self.geometry("1020x780")
-        self.minsize(820, 620)
+        # Open maximised — falls back to a large fixed size if state() isn't supported
+        self.after(0, lambda: self.state("zoomed"))
+        self.geometry("1400x860")
+        self.minsize(1020, 680)
         self.configure(bg=CLR["bg"])
         try:
             self.iconbitmap(resource_path("images.ico"))
@@ -1655,6 +1916,10 @@ class App(tk.Tk):
         ttk.Button(
             frame, text="Clear Console", style="Accent.TButton",
             command=self._clear_console).pack(side="left")
+
+        ttk.Button(
+            frame, text="📋  View Logs", style="Accent.TButton",
+            command=self._open_log_viewer).pack(side="left", padx=(6, 0))
 
         # Progress indicator
         self._progress = ttk.Progressbar(frame, mode="indeterminate", length=180)
@@ -2037,6 +2302,9 @@ class App(tk.Tk):
         self._lb_reports.delete(0, "end")
         for name in list_reports():
             self._lb_reports.insert("end", name)
+
+    def _open_log_viewer(self):
+        LogViewerDialog(self)
 
     def _open_report(self):
         sel = self._lb_reports.curselection()
