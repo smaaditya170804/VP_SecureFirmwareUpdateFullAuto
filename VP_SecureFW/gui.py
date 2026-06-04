@@ -74,6 +74,31 @@ FONT_MONO = ("Consolas", 9)
 # Helpers
 # ---------------------------------------------------------------------------
 
+SETTINGS_FILE = ROOT / "settings.json"
+
+
+def load_settings() -> dict:
+    """Load persisted GUI settings from settings.json."""
+    try:
+        if SETTINGS_FILE.exists():
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+
+def save_settings(data: dict) -> None:
+    """Persist GUI settings to settings.json."""
+    try:
+        existing = load_settings()
+        existing.update(data)
+        with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+            json.dump(existing, f, indent=2)
+    except Exception:
+        pass
+
+
 def list_testplans() -> list[str]:
     """Return sorted list of YAML file names in testplans/ directory."""
     if not TESTPLANS_DIR.exists():
@@ -1308,7 +1333,7 @@ class ProductConfigDialog(tk.Toplevel):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("VP SecureFW Test Framework")
+        self.title("SecureFW Test Framework")
         self.geometry("1020x780")
         self.minsize(820, 620)
         self.configure(bg=CLR["bg"])
@@ -1331,9 +1356,18 @@ class App(tk.Tk):
         self.sv_email = tk.StringVar()
         self.sv_status = tk.StringVar(value="Idle  —  select a test plan to get started")
 
+        # Restore persisted email
+        _saved = load_settings()
+        if _saved.get("email"):
+            self.sv_email.set(_saved["email"])
+
+        # Auto-save email whenever it changes
+        self.sv_email.trace_add("write", lambda *_: save_settings({"email": self.sv_email.get().strip()}))
+
         self._build_ui()
         self._refresh_reports()
         self._refresh_config_selector()
+        self._validate_email_field()   # show indicator for restored email
 
         # Populate testplan dropdown
         plans = list_testplans()
@@ -1358,7 +1392,7 @@ class App(tk.Tk):
         hdr.pack_propagate(False)
         tk.Label(
             hdr,
-            text="  VP SecureFW  Test Framework",
+            text="  SecureFW  Test Framework",
             bg=CLR["hdr_bg"],
             fg=CLR["hdr_fg"],
             font=(FONT_FAMILY, 14, "bold"),
@@ -1574,12 +1608,35 @@ class App(tk.Tk):
                  font=FONT_BOLD, width=14, anchor="w").grid(row=3, column=0, sticky="w", pady=4)
         email_frame = tk.Frame(grid, bg=CLR["panel_bg"])
         email_frame.grid(row=3, column=1, columnspan=2, sticky="w")
-        tk.Entry(email_frame, textvariable=self.sv_email, font=FONT,
+        self._email_entry = tk.Entry(email_frame, textvariable=self.sv_email, font=FONT,
                  width=34, relief="solid", bd=1,
                  highlightbackground=CLR["border"],
-                 highlightthickness=1).pack(side="left")
+                 highlightthickness=1)
+        self._email_entry.pack(side="left")
+        self._email_status_lbl = tk.Label(email_frame, text="", bg=CLR["panel_bg"],
+                                          font=(FONT_FAMILY, 8))
+        self._email_status_lbl.pack(side="left", padx=(6, 0))
         tk.Label(email_frame, text="  optional — requires GMAIL_SENDER & GMAIL_APP_PASSWORD env vars",
                  bg=CLR["panel_bg"], fg="#757575", font=(FONT_FAMILY, 8)).pack(side="left")
+        # Validate email format live as the user types
+        self.sv_email.trace_add("write", lambda *_: self._validate_email_field())
+
+    def _validate_email_field(self) -> bool:
+        """Check email format, update the inline indicator, return True if valid or empty."""
+        email = self.sv_email.get().strip()
+        if not email:
+            self._email_status_lbl.config(text="", fg="#757575")
+            self._email_entry.config(highlightbackground=CLR["border"], highlightthickness=1)
+            return True
+        # Simple RFC-style check: something@something.something
+        valid = bool(re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email))
+        if valid:
+            self._email_status_lbl.config(text="✔ valid & saved", fg=CLR["pass"])
+            self._email_entry.config(highlightbackground=CLR["pass"], highlightthickness=1)
+        else:
+            self._email_status_lbl.config(text="✘ invalid", fg=CLR["fail"])
+            self._email_entry.config(highlightbackground=CLR["fail"], highlightthickness=1)
+        return valid
 
     def _build_controls(self, parent):
         frame = tk.Frame(parent, bg=CLR["bg"])
@@ -2010,7 +2067,20 @@ class App(tk.Tk):
         else:
             yaml_path = str(TESTPLANS_DIR / yaml_name)
 
-        cmd = [sys.executable, str(ROOT / "runtestplan.py"), yaml_path]
+        # When running as a PyInstaller frozen exe, sys.executable is the exe
+        # itself — we must find a real Python interpreter to run runtestplan.py.
+        if getattr(sys, "frozen", False):
+            import shutil
+            python_exe = shutil.which("python") or shutil.which("python3")
+            if not python_exe:
+                raise ValueError(
+                    "Cannot find Python on PATH.\n"
+                    "Please ensure Python is installed and added to PATH."
+                )
+        else:
+            python_exe = sys.executable
+
+        cmd = [python_exe, "-u", str(ROOT / "runtestplan.py"), yaml_path]
 
         only_test = self.sv_only_test.get()
         if only_test and not only_test.startswith("—"):
@@ -2036,6 +2106,10 @@ class App(tk.Tk):
         return cmd
 
     def _start_run(self):
+        # Warn about invalid email but do not block — email is optional
+        if self.sv_email.get().strip():
+            self._validate_email_field()
+
         try:
             cmd = self._build_command()
         except ValueError as e:
@@ -2046,6 +2120,9 @@ class App(tk.Tk):
         self._console_append("  STARTING TEST RUN\n", "header")
         self._console_append("  Command: " + " ".join(cmd) + "\n", "dim")
         self._console_append("=" * 70 + "\n\n", "header")
+
+        # Kill any leftover tool processes from a previous run before starting
+        self._kill_tool_processes()
 
         self._btn_run.config(state="disabled")
         self._btn_stop.config(state="normal")
@@ -2059,11 +2136,36 @@ class App(tk.Tk):
         self._polling = True
         self._poll_output()
 
+    # Names of tool executables that must not be left running between test runs
+    _TOOL_EXES = ["SelfProg_Tool.exe", "rfp-cli.exe", "JFlashSPI_CL.exe"]
+
+    def _kill_tool_processes(self):
+        """Kill any lingering firmware-tool processes by image name (Windows)."""
+        if sys.platform != "win32":
+            return
+        for exe_name in self._TOOL_EXES:
+            subprocess.run(
+                ["taskkill", "/F", "/IM", exe_name],
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                capture_output=True,
+            )
+
     def _stop_run(self):
         if self._proc and self._proc.poll() is None:
             try:
-                self._proc.terminate()
-                self._console_append("\n[GUI] Stop requested — process terminated.\n", "warn")
+                if sys.platform == "win32":
+                    # 1) Kill the full process tree rooted at runtestplan.py
+                    subprocess.run(
+                        ["taskkill", "/F", "/T", "/PID", str(self._proc.pid)],
+                        creationflags=subprocess.CREATE_NO_WINDOW,
+                        capture_output=True,
+                    )
+                    # 2) Kill any tool processes that may have detached from the tree
+                    self._kill_tool_processes()
+                else:
+                    import signal, os
+                    os.killpg(os.getpgid(self._proc.pid), signal.SIGTERM)
+                self._console_append("\n[GUI] Stop requested — process tree terminated.\n", "warn")
             except Exception as e:
                 self._console_append(f"\n[GUI] Could not terminate process: {e}\n", "fail")
         self._btn_stop.config(state="disabled")
@@ -2071,6 +2173,8 @@ class App(tk.Tk):
     def _run_subprocess(self, cmd: list[str]):
         """Runs in a worker thread. Puts lines into the output queue."""
         try:
+            # CREATE_NO_WINDOW suppresses the console window on Windows
+            creation_flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             self._proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
@@ -2080,6 +2184,7 @@ class App(tk.Tk):
                 errors="replace",
                 cwd=str(ROOT),
                 shell=False,
+                creationflags=creation_flags,
             )
             for line in self._proc.stdout:
                 self._output_queue.put(line)

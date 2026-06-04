@@ -46,6 +46,10 @@ from typing import Tuple
 import sys
 import subprocess
 
+# Ensure stdout uses UTF-8 so unicode symbols (✓ ✗) don't crash on Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 # --- YAML dependency (PyYAML) ------------------------------------------------
 try:
     import yaml  # pip install pyyaml
