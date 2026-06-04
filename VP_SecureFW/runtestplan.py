@@ -60,7 +60,7 @@ except ImportError:
 # -----------------------------------------------------------------------------
 # Email helper
 # -----------------------------------------------------------------------------
-def send_report_email(report_path: Path, recipient: str):
+def send_report_email(report_path: Path, recipient: str, summary: str = ""):
     """
     Send the generated report as an email attachment via Gmail SMTP.
 
@@ -99,13 +99,14 @@ def send_report_email(report_path: Path, recipient: str):
         password = getpass.getpass("[EMAIL] Gmail App Password (input hidden): ")
 
     msg = EmailMessage()
-    msg["Subject"] = f"Test Report: {report_path.name}"
+    msg["Subject"] = f"Test Report: {report_path.name}" + (f"  [{summary}]" if summary else "")
     msg["From"] = sender
     msg["To"] = recipient
-    msg.set_content(
-        f"Please find the attached test report: {report_path.name}\n\n"
-        "This report was generated automatically by runtestplan.py."
-    )
+    body = f"Please find the attached test report: {report_path.name}\n\n"
+    if summary:
+        body += f"Run Summary: {summary}\n\n"
+    body += "This report was generated automatically by runtestplan.py."
+    msg.set_content(body)
 
     with open(report_path, "rb") as fh:
         msg.add_attachment(
@@ -366,9 +367,10 @@ def selfprog_flagcheck_install(cfg: dict, expected_flags: dict = None, wait_sec=
     
     return rc, ad_path, ar_path, test_passed
 
-def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list]:
+def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list, str]:
     """
-    Execute a single test and return (error_occurred, test_passed, board_results).
+    Execute a single test and return (error_occurred, test_passed, board_results, error_reason).
+    error_reason is a human-readable string describing what failed (empty if nothing failed).
     """
     flash_srec = t.get("flash_srec")
     reset_type = str(t.get("reset_type", "install")).strip().lower()
@@ -379,11 +381,13 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list]:
     error_occurred = False
     test_passed = True
     board_results = []
+    error_reasons: list[str] = []
 
     # Step 1: If SREC is provided, flash it first
     if flash_srec:
         if rfp_flash_srec(cfg, flash_srec) != 0:
             error_occurred = True
+            error_reasons.append("RFP flash SREC failed")
 
     # Step 2: Run per-board flow for all enabled boards
     enabled_boards = get_enabled_boards(cfg)
@@ -453,37 +457,48 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list]:
         print(f"\n  --- BOARD: {board_label.upper()} (board_number={board_number}) ---")
 
         board_error = False
+        board_error_reason = ""
         board_flag_summary = ""
         board_passed = True
 
         if method == "JFlash":
             if relay_on() != 0:
                 board_error = True
+                board_error_reason = "Relay ON failed"
             if not update_pkg:
                 print(f"  [ERROR] {update_key} is required for JFlash tests.")
                 board_error = True
+                board_error_reason = board_error_reason or f"{update_key} missing for JFlash"
             elif jflash_update(cfg, update_pkg) != 0:
                 board_error = True
+                board_error_reason = board_error_reason or "J-Flash update failed"
         elif method == "SelfProgrammer":
             if not update_pkg:
                 print(f"  [ERROR] {update_key} is required for SelfProgrammer tests.")
                 board_error = True
+                board_error_reason = f"{update_key} missing for SelfProgrammer"
             elif selfprog_download(cfg, update_pkg, board_number, board_label) != 0:
                 board_error = True
+                board_error_reason = "SelfProgrammer download failed"
         elif method == "InstallOnly":
             if relay_on() != 0:
                 board_error = True
+                board_error_reason = "Relay ON failed"
             if jflash_erase_and_reconnect(cfg) != 0:
                 board_error = True
+                board_error_reason = board_error_reason or "J-Flash erase/reconnect failed"
         elif method:
             print(f"  [ERROR] Unknown delivery_method for {board_label}: '{method}'")
             board_error = True
+            board_error_reason = f"Unknown delivery_method: '{method}'"
 
         if board_error:
             print(f"  [WARN] Skipping SelfProg flag check for {board_label.upper()} due to delivery failure.")
             board_passed = False
             test_passed = False
             error_occurred = True
+            if board_error_reason:
+                error_reasons.append(f"[{board_label.upper()}] {board_error_reason}")
             board_results.append({
                 "board_label": board_label,
                 "board_number": board_number,
@@ -492,6 +507,7 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list]:
                 "expected_flags": expected_flags,
                 "test_passed": False,
                 "flag_summary": board_flag_summary,
+                "error_reason": board_error_reason,
             })
             continue
 
@@ -503,6 +519,7 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list]:
         )
         if rc != 0:
             board_error = True
+            board_error_reason = "SelfProg flag check tool failed"
         else:
             import io, contextlib
             from selfprogrammer import selfprogflagcheckparser as parser
@@ -516,7 +533,10 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list]:
             test_passed = False
         if board_error:
             error_occurred = True
+            if board_error_reason:
+                error_reasons.append(f"[{board_label.upper()}] {board_error_reason}")
 
+        final_reason = board_error_reason if board_error else ("Flag mismatch" if not board_passed else "")
         board_results.append({
             "board_label": board_label,
             "board_number": board_number,
@@ -525,9 +545,13 @@ def execute_test(t: dict, cfg: dict) -> Tuple[bool, bool, list]:
             "expected_flags": expected_flags,
             "test_passed": board_passed and not board_error,
             "flag_summary": board_flag_summary,
+            "error_reason": final_reason,
         })
 
-    return error_occurred, test_passed, board_results
+    test_error_reason = "; ".join(error_reasons) if error_reasons else (
+        "Flag mismatch" if not test_passed else ""
+    )
+    return error_occurred, test_passed, board_results, test_error_reason
 
 # -----------------------------------------------------------------------------
 # Main
@@ -608,7 +632,7 @@ def main():
     else:
         tests = all_tests
 
-    run_summaries = []  # [(run_num, overall_error), ...]
+    run_summaries = []  # [(run_num, overall_error, report_generated, completed_ok, total), ...]
 
     for run_num in range(1, args.repeat + 1):
         if args.repeat > 1:
@@ -641,9 +665,10 @@ def main():
             error_occurred = False
             test_passed = False
             board_results = []
+            test_error_reason = ""
 
             while retry_count < 3:
-                error_occurred, test_passed, board_results = execute_test(t, cfg)
+                error_occurred, test_passed, board_results, test_error_reason = execute_test(t, cfg)
                 
                 if not error_occurred:
                     break
@@ -696,14 +721,22 @@ def main():
                 "error": error_occurred,
                 "test_passed": test_passed,
                 "board_results": board_results,
+                "error_reason": test_error_reason,
             })
             if error_occurred:
                 overall_error = True
 
             test_idx += 1
 
-        # if every test succeeded, create report and clean logs
-        if not overall_error:
+        # Generate report if ≥40% of tests completed without tool errors
+        completed_without_error = sum(1 for r in results if not r["error"])
+        total_tests_run = len(results)
+        threshold_met = total_tests_run > 0 and completed_without_error >= 0.40 * total_tests_run
+        report_generated = False
+        if not threshold_met:
+            pct_str = f"{completed_without_error}/{total_tests_run}"
+            print(f"[INFO] No report: only {pct_str} tests completed without tool errors (need >=40%).")
+        if threshold_met:
             try:
                 from openpyxl import Workbook
                 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -713,12 +746,11 @@ def main():
                 reports_dir = ROOT / "reports"
                 reports_dir.mkdir(parents=True, exist_ok=True)
                 ts = __import__("datetime").datetime.now().strftime("%Y%m%d-%H%M%S")
-                # Include run index in the filename when --repeat > 1 so each run
-                # gets its own uniquely-named report file.
+                partial_tag = "_partial" if overall_error else ""
                 if args.repeat > 1:
-                    report_name = f"{testplan_path.stem}_{ts}_run{run_num}of{args.repeat}.xlsx"
+                    report_name = f"{testplan_path.stem}_{ts}_run{run_num}of{args.repeat}{partial_tag}.xlsx"
                 else:
-                    report_name = f"{testplan_path.stem}_{ts}.xlsx"
+                    report_name = f"{testplan_path.stem}_{ts}{partial_tag}.xlsx"
                 wb = Workbook()
                 ws = wb.active
                 ws.title = "Results"
@@ -736,7 +768,7 @@ def main():
                 )
                 
                 # Main headers
-                headers = ["Test ID", "Scenario", "Delivery", "Flash SREC", "Update Package", "Error", "Status"]
+                headers = ["Test ID", "Scenario", "Delivery", "Flash SREC", "Update Package", "Error", "Status", "Error / Failure Reason"]
                 ws.append(headers)
                 for cell in ws[1]:
                     cell.fill = header_fill
@@ -752,6 +784,7 @@ def main():
                 ws.column_dimensions['E'].width = 35
                 ws.column_dimensions['F'].width = 10
                 ws.column_dimensions['G'].width = 12
+                ws.column_dimensions['H'].width = 40
                 
                 # Rows with main test data
                 row_num = 2
@@ -768,18 +801,24 @@ def main():
                     ws[f'D{row_num}'].value = r["flash_srec"]
                     ws[f'E{row_num}'].value = (main_board or {}).get("update_pkg", r["update_pkg"])
                     ws[f'F{row_num}'].value = "Yes" if r["error"] else "No"
-                    ws[f'G{row_num}'].value = "✓ PASSED" if r.get("test_passed", False) else "✗ FAILED"
-                    
+                    ws[f'G{row_num}'].value = "\u2713 PASSED" if r.get("test_passed", False) else "\u2717 FAILED"
+                    ws[f'H{row_num}'].value = r.get("error_reason", "")
+
                     # Color code the status column
                     status_cell = ws[f'G{row_num}']
                     if r.get("test_passed", False):
                         status_cell.fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
                         status_cell.font = Font(bold=True, color="006100")
-                    else:
+                    elif r["error"]:
+                        # Tool/infra error — red
                         status_cell.fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
                         status_cell.font = Font(bold=True, color="9C0006")
-                    
-                    for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+                    else:
+                        # Flag mismatch — orange
+                        status_cell.fill = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+                        status_cell.font = Font(bold=True, color="9C6500")
+
+                    for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
                         cell = ws[f'{col}{row_num}']
                         cell.alignment = Alignment(horizontal="left", vertical="top", wrap_text=True)
                         cell.border = thin_border
@@ -857,11 +896,18 @@ def main():
             flag_sheet.column_dimensions['C'].width = 20
             flag_sheet.column_dimensions['D'].width = 20
             
+            report_generated = True
             wb.save(str(reports_dir / report_name))
-            print(f"[INFO] Report generated: {reports_dir / report_name}")
+            passed_count = sum(1 for r in results if r.get("test_passed"))
+            run_summary_str = (
+                f"{passed_count}/{total_tests_run} tests passed"
+                + (f", {completed_without_error}/{total_tests_run} completed OK" if overall_error else "")
+                + (" [PARTIAL]" if overall_error else " [ALL OK]")
+            )
+            print(f"[INFO] Report generated: {reports_dir / report_name}  ({run_summary_str})")
             # Send report by email if requested
             if args.send_report_to:
-                send_report_email(reports_dir / report_name, args.send_report_to)
+                send_report_email(reports_dir / report_name, args.send_report_to, summary=run_summary_str)
             # cleanup log files now that report exists
             for logdir in ROOT.rglob('logs'):
                 if logdir.is_dir():
@@ -873,7 +919,7 @@ def main():
             print("[INFO] Log files deleted.")
 
         # Record outcome of this run before moving to the next
-        run_summaries.append((run_num, overall_error))
+        run_summaries.append((run_num, overall_error, report_generated, completed_without_error, total_tests_run))
 
         print("\n" + "="*60)
         if args.repeat > 1:
@@ -888,8 +934,12 @@ def main():
         print("\n" + "="*60)
         print(f"REPEAT SUMMARY  ({args.repeat} run{'s' if args.repeat != 1 else ''})")
         print("="*60)
-        for rn, err in run_summaries:
-            status = "COMPLETED WITH ERRORS  (no report)" if err else "OK — report generated"
+        for rn, err, rep, ok, total in run_summaries:
+            pct = f"{ok}/{total}"
+            if rep:
+                status = f"Report generated  ({pct} completed OK" + ("  [partial])" if err else ")")
+            else:
+                status = f"No report  ({pct} completed OK — below 40% threshold)"
             print(f"  Run {rn:{width}}: {status}")
         print("="*60 + "\n")
 

@@ -6,8 +6,8 @@ tests:
     scenario: Application Update
     delivery_method: SelfProgrammer
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\R_93560895V01.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.sxcbin"
+    flash_srec: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\R_93371182V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V02.01.00.00001_R_K_TSIP_BL_01_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -19,8 +19,8 @@ tests:
     scenario: Boot + Application update w/ version change
     delivery_method: SelfProgrammer
     reset_type: install
-    flash_srec: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\R_93560895V01.01.00.00001_INT_Image_R.srec"
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.sxcbin"
+    flash_srec: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\R_93371182V01.01.00.00001_INT_Image_R.srec"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V02.01.00.00001_R_K_TSIP_BL_02_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -33,7 +33,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -46,7 +46,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V02.01.00.00002_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -59,7 +59,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V02.01.00.00002_R_K_TSIP_BL_03_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V02.01.00.00002_R_K_TSIP_BL_03_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -72,7 +72,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V04.01.01.00001_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V04.01.01.00001_R_K_TSIP_BL_02_01_00_00002_EXT_UpdPkg_Ainvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -85,7 +85,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V04.01.00.00001_R_K_TSIP_BL_04_01_00_00001_EXT_UpdPkg_Ainvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V04.01.00.00001_R_K_TSIP_BL_04_01_00_00001_EXT_UpdPkg_Ainvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -98,7 +98,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -111,7 +111,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -124,7 +124,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -137,7 +137,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -150,7 +150,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V05.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -163,7 +163,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V06.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V06.01.00.00001_R_K_TSIP_BL_06_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -176,7 +176,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V05.01.00.00001_R_K_TSIP_BL_05_01_00_00001_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -189,7 +189,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V07.01.00.00001_R_K_TSIP_BL_07_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V07.01.00.00001_R_K_TSIP_BL_07_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -202,7 +202,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V07.01.00.00002_R_K_TSIP_BL_07_01_00_00002_EXT_UpdPkg_Minvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -215,7 +215,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V08.01.00.00002_R_K_TSIP_BL_08_01_00_00002_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V08.01.00.00002_R_K_TSIP_BL_08_01_00_00002_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -228,7 +228,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_S2.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_S2.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -241,7 +241,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V09.01.00.00000_R_K_TSIP_BL_09_01_00_00000_EXT_UpdPkg_App.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -254,7 +254,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00001_R_K_TSIP_BL_09_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V09.01.00.00001_R_K_TSIP_BL_09_01_00_00001_EXT_UpdPkg_BLinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -267,7 +267,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.01.00.00002_R_K_TSIP_BL_09_01_00_00002_EXT_UpdPkg_Kinvalid.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V09.01.00.00002_R_K_TSIP_BL_09_01_00_00002_EXT_UpdPkg_Kinvalid.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1
@@ -280,7 +280,7 @@ tests:
     delivery_method: SelfProgrammer
     reset_type: install
     flash_srec: 
-    update_pkg: "C:\\GBP_Testing\\V43.40.00\\01May_Nebula_SET_2 - Copy\\01May_Nebula_SET_2 - Copy\\93560895V09.02.00.00999_R_K_TSIP_BL_09_02_00_00999_EXT_UpdPkg.sxcbin"
+    update_pkg: "C:\\GBP_Testing\\V43.40.00\\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\\Releases\\GBP_LY_FME_SB\\SET_2\\93371182V09.02.00.00999_R_K_TSIP_BL_09_02_00_00999_EXT_UpdPkg.sxcbin"
     expected_flags_after_reset:
       FwUpdate_req: 0
       FwUpdate_frez: 1

@@ -1,8 +1,0 @@
-Renesas Flash Programmer CLI V1.16
- Module Version: V3.23.00.000
- Package Version: V3.23.00 [1 Apr 2026]
-Load: "C:\GBP_Testing\V43.40.00\01May_Nebula_SET_2 - Copy\01May_Nebula_SET_2 - Copy\R_93560895V01.01.00.00001_INT_Image_R.srec" (Size=4587610, CRC=737AA42F)
-
-Connecting the tool (E2 emulator Lite)
-
-[Error] E3000202: The specified tool is already in use.
