@@ -1,24 +1,17 @@
 {
-  "product_name": "SQCU",
-  "id_code": "45CE3B4FCDEC9831AEC8DACD92B03EE0",
-
+  "product_name": "MIXITG4",
+  "id_code": "45B6C7E6DA4A7CB3516DB5CD3B3294F7",
   "rfp_exe": "C:\\Program Files (x86)\\Renesas Electronics\\Programming Tools\\Renesas Flash Programmer V3.23\\rfp-cli.exe",
   "rfp_device": "RX65x",
   "rfp_tool": "e2l",
   "rfp_interface": "fine",
-
   "jflash_exe": "C:\\Program Files\\SEGGER\\JLink_V938a\\JFlashSPI_CL.exe",
   "jflash_project": "C:\\Software\\J-Flash SPI_Projects\\V9.12\\jlinkflash.jflash",
-
   "selfprog_exe": "C:\\GrundfosTools\\SelfProgrammer\\PCTool_06_05_26_11_54\\PCTool_06_05_26_11_54\\SelfProg_Tool.exe",
-
   "relay_on_script": "relaycontrol/relayon.py",
   "relay_off_script": "relaycontrol/relayoff.py",
-
   "serial_port": 4,
-  "serial_baud": 9600,
-  "board_number": 38,
-  "ble_board_number": 30,
-  "wifi_board_number": 40
-  
+  "serial_baud": 38400,
+  "board_number": 19,
+  "ble_board_number": 30
 }

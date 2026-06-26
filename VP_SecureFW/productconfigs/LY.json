@@ -10,12 +10,12 @@
   "jflash_exe": "C:\\Program Files\\SEGGER\\JLink\\JFlashSPI_CL.exe",
   "jflash_project": "C:\\Software\\J-Flash SPI_Projects\\V9.12\\jlinkflash.jflash",
 
-  "selfprog_exe": "C:\\GBP_Testing\\Release_Test\\Release_Test\\SelfProg_Tool.exe",
+  "selfprog_exe": "C:\\GrundfosTools\\SelfProgrammer\\PCTool_06_05_26_11_54\\PCTool_06_05_26_11_54\\SelfProg_Tool.exe",
 
   "relay_on_script": "relaycontrol/relayon.py",
   "relay_off_script": "relaycontrol/relayoff.py",
 
-  "serial_port": 8,
-  "serial_baud": 38400,
+  "serial_port": 14,
+  "serial_baud": 9600,
   "board_number": 58
 }

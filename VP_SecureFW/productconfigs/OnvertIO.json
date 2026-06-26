@@ -15,7 +15,7 @@
   "relay_on_script": "relaycontrol/relayon.py",
   "relay_off_script": "relaycontrol/relayoff.py",
 
-  "serial_port": 4,
+  "serial_port": 15,
   "serial_baud": 115200,
   "board_number": 56
   

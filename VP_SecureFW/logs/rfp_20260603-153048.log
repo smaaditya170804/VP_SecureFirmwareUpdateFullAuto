@@ -1,8 +1,0 @@
-Renesas Flash Programmer CLI V1.16
- Module Version: V3.23.00.000
- Package Version: V3.23.00 [1 Apr 2026]
-Load: "C:\GBP_Testing\V43.40.00\bbGBP-IEC-62443-4-2_binaries-prerelease-V43.39.01.00002\Releases\GBP_Nebula_SB\SET_1\R_93560895V01.01.00.00001_INT_Image_R.srec" (Size=4587610, CRC=13451849)
-
-Connecting the tool (E2 emulator Lite)
-
-[Error] E3000201: Cannot find the specified tool.
