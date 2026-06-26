@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-r"""
+"""
 Wraps SelfProg_Tool.exe to program a BIN file in four steps:
   1) /c <COM>
   2) /baudrate -download <BAUD>

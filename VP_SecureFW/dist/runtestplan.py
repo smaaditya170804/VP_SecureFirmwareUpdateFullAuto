@@ -667,15 +667,15 @@ def main():
             board_results = []
             test_error_reason = ""
 
-            while retry_count < 3:
+            while retry_count < 10:
                 error_occurred, test_passed, board_results, test_error_reason = execute_test(t, cfg)
                 
                 if not error_occurred:
                     break
                 
                 retry_count += 1
-                if retry_count < 3:
-                    print(f"  [RETRY] Test failed, retrying ({retry_count}/3)...")
+                if retry_count < 10:
+                    print(f"  [RETRY] Test failed, retrying ({retry_count}/10)...")
 
             # Print test result with pass/fail status
             if error_occurred:

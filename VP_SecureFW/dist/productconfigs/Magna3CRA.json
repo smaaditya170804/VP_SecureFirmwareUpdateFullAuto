@@ -2,7 +2,7 @@
   "product_name": "Magna3CRA",
   "id_code": "451673EF7C4F25521C2FF72049E0D654",
 
-  "rfp_exe": "C:\\Program Files (x86)\\Renesas Electronics\\Programming Tools\\Renesas Flash Programmer V3.21\\rfp-cli.exe",
+  "rfp_exe": "C:\\Program Files (x86)\\Renesas Electronics\\Programming Tools\\Renesas Flash Programmer V3.23\\rfp-cli.exe",
   "rfp_device": "RX65x",
   "rfp_tool": "e2l",
   "rfp_interface": "fine",
@@ -10,13 +10,13 @@
   "jflash_exe": "C:\\Program Files\\SEGGER\\JLink\\JFlashSPI_CL.exe",
   "jflash_project": "C:\\Software\\J-Flash SPI_Projects\\V9.12\\jlinkflash.jflash",
 
-  "selfprog_exe": "C:\\GrundfosTools\\bbselfprogrammer-40944bac1d8716a50ef3d7622c0d287728c49026\\Release\\SelfProg_Tool.exe",
+  "selfprog_exe": "C:\\GrundfosTools\\SelfProgrammer\\PCTool_06_05_26_11_54\\PCTool_06_05_26_11_54\\SelfProg_Tool.exe",
 
   "relay_on_script": "relaycontrol/relayon.py",
   "relay_off_script": "relaycontrol/relayoff.py",
 
-  "serial_port": 4,
-  "serial_baud": 38400,
+  "serial_port": 11,
+  "serial_baud": 115200,
   "board_number": 57,
   "ble_board_number": 30
   
