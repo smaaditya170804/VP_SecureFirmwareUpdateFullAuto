@@ -10,7 +10,7 @@
   "selfprog_exe": "C:/GrundfosTools/SelfProgrammer/PCTool_06_05_26_11_54/PCTool_06_05_26_11_54/SelfProg_Tool.exe",
   "relay_on_script": "relaycontrol/relayon.py",
   "relay_off_script": "relaycontrol/relayoff.py",
-  "serial_port": 8,
+  "serial_port": 4,
   "serial_baud": 38400,
   "board_number": 48
 }
