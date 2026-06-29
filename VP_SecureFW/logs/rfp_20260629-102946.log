@@ -1,0 +1,15 @@
+Renesas Flash Programmer CLI V1.16
+ Module Version: V3.23.00.000
+ Package Version: V3.23.00 [1 Apr 2026]
+Load: "C:\GBP_Testing\V43.41.00\SaVerAdvPlus_Jun26\SaVerAdvPlus\SET_1\R_48112233V01.01.00.00001_INT_Image_R.srec" (Size=4587610, CRC=1B5970AC)
+
+Connecting the tool (E2 emulator Lite)
+Tool: E2 emulator Lite (0LS025675A)
+Interface: FINE
+Tool Firmware Version: V3.05.00.000
+
+Emulator power supply: OFF
+Connecting the target device
+
+[Error] E3000105: The device is not responding.
+Disconnecting the tool
